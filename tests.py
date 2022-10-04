@@ -88,7 +88,6 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = tok1,
             joined = dt1
         )
-        p1.save()
 
         dt2 = datetime.now()
         p2 = Player(
@@ -99,7 +98,6 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = tok2,
             joined = dt2
         )
-        p2.save()
 
         dt3 = datetime.now()
         p3 = Player(
@@ -110,7 +108,6 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = tok3,
             joined = dt3
         )
-        p3.save()
 
         dt4 = datetime.now()
         p4 = Player(
@@ -120,8 +117,13 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = tok4,
             joined = dt4
         )
-        p4.save()
         print(p1._insert_sql)
+
+        #Save all 4 players
+        p1.save()
+        p2.save()
+        p3.save()
+        p4.save()
 
         #Test data
         self.assertEqual(p1.id, 1)
@@ -170,19 +172,106 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = fields.BinaryField(not_null = True)
             joined = fields.DateTimeField(not_null = True)
 
-        #Modify Billy and save the changes
+        #Modify Billy and discard the changes
         billy = Player(id = 4)
-        billy.age = 11
-        billy.save()
+        billy.age = 40
+        billy.discard()
 
-        #Modify Susan and discard the changes
+        #Modify Susan and save the changes
         susan = Player(id = 3)
-        susan.age = 2
-        susan.discard()
+        susan.age = 20
+        susan.save()
 
         #Test data
-        self.assertEqual(billy.age, 11)
-        self.assertEqual(susan.age, 80)
+        self.assertEqual(billy.age, 10)
+        self.assertEqual(susan.age, 20)
+
+    def test_4_filtering(self):
+        """Test SQLite model filtering."""
+        from cheetah_orm.db import DataModel, fields
+
+        #Create data model
+        class Player(DataModel):
+            table = "players"
+            name = fields.StringField(length = 32, unique = True, not_null = True)
+            pswd = fields.PswdField(length = 128, not_null = True)
+            age = fields.IntField(not_null = True)
+            avg_score = fields.FloatField(default = 0, not_null = True)
+            token = fields.BinaryField(not_null = True)
+            joined = fields.DateTimeField(not_null = True)
+
+            def __str__(self):
+                """Return the string representation of this data model."""
+                return f"Player(\n    id = {self.id}\n    name = '{self.name}', \n    pswd = '{self.pswd}', \n    age = {self.age}, \n    avg_score = {self.avg_score}, \n    token = '{self.token}', \n    joined = '{self.joined}'\n)"
+
+        #Fetch all players sorted by name
+        players = Player.filter(order_by = "name")
+        print()
+        print("Players")
+        print("=======")
+        
+        for player in players:
+            print(player)
+
+        #Fetch all players with an age of 20
+        players = Player.filter(eq_age = 20)
+        print()
+        print("Players with an Age of 20")
+        print("=========================")
+
+        for player in players:
+            print(player)
+            self.assertEqual(player.age, 20)
+
+        #Fetch all players with an age that isn't 20
+        players = Player.filter(neq_age = 20)
+        print()
+        print("Players with an Age that isn't 20")
+        print("=================================")
+
+        for player in players:
+            print(player)
+            self.assertNotEqual(player.age, 20)
+
+        #Fetch all players with a score less than 5000
+        players = Player.filter(lt_avg_score = 5000)
+        print()
+        print("Players with a Score Less Than 5000")
+        print("===================================")
+
+        for player in players:
+            print(player)
+            self.assertLess(player.avg_score, 5000)
+
+        #Fetch all players with a score greater than 50
+        players = Player.filter(gt_avg_score = 50)
+        print()
+        print("Players with a Score Greater Than 50")
+        print("====================================")
+
+        for player in players:
+            print(player)
+            self.assertGreater(player.avg_score, 50)
+
+        #Fetch all players with a score less than or equal to 50.9
+        players = Player.filter(lte_avg_score = 50.9)
+        print()
+        print("Players with a Score Less Than or Equal to 50.9")
+        print("================================================")
+
+        for player in players:
+            print(player)
+            self.assertLessEqual(player.avg_score, 50.9)
+
+        #Fetch all players with an age greater than or equal to 20
+        players = Player.filter(gte_age = 20)
+        print()
+        print("Players with an Age Greater Than or Equal to 20")
+        print("===============================================")
+
+        for player in players:
+            print(player)
+            self.assertGreaterEqual(player.age, 20)
 
 
 #Entry Point

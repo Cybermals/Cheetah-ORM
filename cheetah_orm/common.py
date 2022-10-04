@@ -46,11 +46,10 @@ class Field(object):
         self._key = (kwargs["key"] if "key" in kwargs else False)
         self._get = None
         self._set = None
-        self._value = self._default
 
     def __set_name__(self, owner, name):
-        """Generate get/set SQL for this field."""
-        pass
+        """Store field name."""
+        self._name = name
 
     def __get__(self, instance, owner = None):
         """Get the value of this field."""
@@ -58,7 +57,7 @@ class Field(object):
         if instance.id is not None:
             return self._cursor.execute(self._get, (instance.id,)).fetchone()[0]
 
-        return self._value
+        return (instance._cache[self._name] if self._name in instance._cache else self._default)
 
     def __set__(self, instance, value):
         """Set the value of this field."""
@@ -67,10 +66,15 @@ class Field(object):
             self._cursor.execute(self._set, (value, instance.id))
 
         else:
-            self._value = value
+            instance._cache[self._name] = value
 
-    def pop_cache(self):
-        """Remove and return the cached value of this field."""
-        value = self._value
-        self._value = self._default
-        return value
+    def _pop_cache(self, instance):
+        """Pop the cached value for this field."""
+        #Is there a cached value?
+        if self._name in instance._cache:
+            value = instance._cache[self._name]
+            del instance._cache[self._name]
+            return value
+
+        #Return default value
+        return self._default
