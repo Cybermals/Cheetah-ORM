@@ -1,13 +1,13 @@
 """Cheetah ORM - Database Driver"""
 
+from . import dummy_fields as fields
+from .dummy_model import DataModel
 from .exceptions import UnknownDBDriver
 
 
 #Globals
 #=======
 _db = None
-fields = None
-DataModel = None
 
 
 #Functions
@@ -21,6 +21,7 @@ def connect(driver = "sqlite3", **kwargs):
         #Establish database connection
         import sqlite3
         _db = sqlite3.connect(**kwargs)
+        _db.cursor().execute("PRAGMA foreign_keys = ON;")
 
         #Import SQLite data model and field classes
         from . import sqlite3_fields as fields

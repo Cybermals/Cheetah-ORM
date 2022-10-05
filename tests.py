@@ -1,5 +1,6 @@
 """Cheetah ORM - Unit Tests"""
 
+import os
 import unittest
 
 
@@ -214,7 +215,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             print(player)
 
         #Fetch all players with an age of 20
-        players = Player.filter(eq_age = 20)
+        players = Player.filter(age_eq = 20)
         print()
         print("Players with an Age of 20")
         print("=========================")
@@ -224,7 +225,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             self.assertEqual(player.age, 20)
 
         #Fetch all players with an age that isn't 20
-        players = Player.filter(neq_age = 20)
+        players = Player.filter(age_neq = 20)
         print()
         print("Players with an Age that isn't 20")
         print("=================================")
@@ -234,7 +235,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             self.assertNotEqual(player.age, 20)
 
         #Fetch all players with a score less than 5000
-        players = Player.filter(lt_avg_score = 5000)
+        players = Player.filter(avg_score_lt = 5000)
         print()
         print("Players with a Score Less Than 5000")
         print("===================================")
@@ -244,7 +245,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             self.assertLess(player.avg_score, 5000)
 
         #Fetch all players with a score greater than 50
-        players = Player.filter(gt_avg_score = 50)
+        players = Player.filter(avg_score_gt = 50)
         print()
         print("Players with a Score Greater Than 50")
         print("====================================")
@@ -254,7 +255,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             self.assertGreater(player.avg_score, 50)
 
         #Fetch all players with a score less than or equal to 50.9
-        players = Player.filter(lte_avg_score = 50.9)
+        players = Player.filter(avg_score_lte = 50.9)
         print()
         print("Players with a Score Less Than or Equal to 50.9")
         print("================================================")
@@ -264,7 +265,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             self.assertLessEqual(player.avg_score, 50.9)
 
         #Fetch all players with an age greater than or equal to 20
-        players = Player.filter(gte_age = 20)
+        players = Player.filter(age_gte = 20)
         print()
         print("Players with an Age Greater Than or Equal to 20")
         print("===============================================")
@@ -272,6 +273,67 @@ class TestSQLiteDBDriver(unittest.TestCase):
         for player in players:
             print(player)
             self.assertGreaterEqual(player.age, 20)
+
+        #Fetch all players with an age greater than or equal to 20 and a score greater than 50
+        players = Player.filter(age_gte = 20, and_avg_score_gt = 50)
+        print()
+        print("Players with an Age Greater Than or Equal to 20 and a Score Greater Than 50")
+        print("===========================================================================")
+
+        for player in players:
+            print(player)
+            self.assertGreaterEqual(player.age, 20)
+            self.assertGreater(player.avg_score, 50)
+
+        #Fetch all players with an age less than 30 or a score greater than 50
+        players = Player.filter(age_lt = 30, or_avg_score_gt = 50)
+        print()
+        print("Players with an Age Less Than 30 or a Score Greater Than 50")
+        print("===========================================================")
+
+        for player in players:
+            print(player)
+            self.assertTrue(player.age < 30 or player.avg_score > 50)
+
+    def test_5_indexes(self):
+        """Test SQLite indexes."""
+        from datetime import datetime
+        from sqlite3 import IntegrityError
+
+        from cheetah_orm.db import DataModel, fields
+
+        #Create data model
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(length = 32, unique = True, not_null = True, key = True)
+            pswd = fields.PswdField(length = 128, not_null = True)
+            email = fields.StringField(length = 256, unique = True, not_null = True)
+            ban = fields.DateTimeField(default = datetime.now())
+
+        User.init_table()
+
+        #Create some users
+        User(
+            name = "Dylan",
+            pswd = "cheetah",
+            email = "cybermals@googlegroups.com"
+        ).save()
+
+        User(
+            name = "Fiona",
+            pswd = "fox",
+            email = "cybermals.group@gmail.com"
+        ).save()
+
+        #This should cause the unique constraint to fail
+        self.assertRaises(
+            IntegrityError,
+            User(
+                name = "Daniel",
+                pswd = "lion",
+                email = "cybermals.group@gmail.com"
+            ).save
+        )
 
 
 #Entry Point

@@ -17,8 +17,9 @@ class DataModel(object):
     @classmethod
     def init_table(cls):
         """Initialize the table for this data model."""
-        #Generate create SQL
+        #Generate table SQL
         sql = f"CREATE TABLE IF NOT EXISTS {cls.table}(id INTEGER PRIMARY KEY, "
+        indexes = []
 
         for name, field in cls._get_fields():
             #Skip __weakref__
@@ -29,13 +30,21 @@ class DataModel(object):
             sql += f"{name} {field._type}"
 
             if field._default is not None:
-                sql += f" DEFAULT {field._default}"
+                if field._type in ["VARCHAR", "BLOB", "DATETIME"]:
+                    sql += f" DEFAULT '{field._default}'"
+
+                else:
+                    sql += f" DEFAULT {field._default}"
 
             elif field._unique:
                 sql += " UNIQUE"
 
             if field._not_null:
                 sql += " NOT NULL"
+
+            #Create index?
+            if field._key:
+                indexes.append(name)
 
             sql += ", "
 
@@ -45,49 +54,64 @@ class DataModel(object):
         #Create table
         cls._cursor.execute(sql)
 
+        #Create each index
+        for index in indexes:
+            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}({index});"
+            print(sql)
+            cls._cursor.execute(sql)
+
     @classmethod
-    def filter(cls, order_by = None, **kwargs):
+    def filter(cls, order_by = "id", **kwargs):
         """Fetch all models which fit the given criteria."""
         #Generate filter SQL
         sql = f"SELECT id FROM {cls.table}"
-        order = " ORDER BY id;"
-
-        if order_by is not None:
-            order = f" ORDER BY {order_by};"
+        order = f" ORDER BY {order_by};"
 
         if len(kwargs):
             #Build WHERE clause
             sql += " WHERE"
 
             for name, value in kwargs.items():
+                #And?
+                if name.startswith("and_"):
+                    sql += " AND"
+                    name = name[4:]
+
+                #Or?
+                elif name.startswith("or_"):
+                    sql += " OR"
+                    name = name[3:]
+
                 #Equal?
-                if name.startswith("eq_"):
-                    sql += f" {name[3:]} = ?"
+                if name.endswith("_eq"):
+                    sql += f" {name[:-3]} = ?"
 
                 #Not equal?
-                elif name.startswith("neq_"):
-                    sql += f" {name[4:]} != ?"
+                elif name.endswith("_neq"):
+                    sql += f" {name[:-4]} != ?"
 
                 #Less than?
-                elif name.startswith("lt_"):
-                    sql += f" {name[3:]} < ?"
+                elif name.endswith("_lt"):
+                    sql += f" {name[:-3]} < ?"
 
                 #Greater than?
-                elif name.startswith("gt_"):
-                    sql += f" {name[3:]} > ?"
+                elif name.endswith("_gt"):
+                    sql += f" {name[:-3]} > ?"
 
                 #Less than or equal to?
-                elif name.startswith("lte_"):
-                    sql += f" {name[4:]} <= ?"
+                elif name.endswith("_lte"):
+                    sql += f" {name[:-4]} <= ?"
 
                 #Greater than or equal to?
-                elif name.startswith("gte_"):
-                    sql += f" {name[4:]} >= ?"
+                elif name.endswith("_gte"):
+                    sql += f" {name[:-4]} >= ?"
 
             #Return results
             sql += order
+            params = tuple(kwargs.values())
             print(sql)
-            return [cls(id = row[0]) for row in cls._cursor.execute(sql, tuple(kwargs.values()))]
+            print(f"Params: {params}")
+            return [cls(id = row[0]) for row in cls._cursor.execute(sql, params)]
 
         #Return results
         sql += order
@@ -108,7 +132,7 @@ class DataModel(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        #Build insert query string?
+        #Generate insert row SQL?
         if self._insert_sql is None:
             head = f"INSERT INTO {self.table}("
             tail = ") VALUES ("
@@ -123,16 +147,17 @@ class DataModel(object):
                 tail += "?, "
 
             self.__class__._insert_sql = head[:-2] + tail[:-2] + ");"
-            print(self._insert_sql)
 
     def save(self):
         """Save changes to this data model to the database."""
         #Does the record for this data model exist in the database?
         if self.id is None:
             #Insert the data model into its table and fetch its ID
-            self._cursor.execute(self._insert_sql, 
-                [value._pop_cache(self) for name, value in self._get_fields()])
+            params = [value._pop_cache(self) for name, value in self._get_fields()]
+            self._cursor.execute(self._insert_sql, params)
             self.id = self._cursor.execute("SELECT LAST_INSERT_ROWID();").fetchone()[0]
+            print(self._insert_sql)
+            print(f"Params: {params}")
 
         #Commit the transaction
         self._cursor.execute("COMMIT;")
