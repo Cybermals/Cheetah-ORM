@@ -14,7 +14,7 @@ class DataModel(object):
         pass
 
     @classmethod
-    def filter(cls, order_by = None, **kwargs):
+    def filter(cls, order_by = None, limit = 0, **kwargs):
         """Fetch all models that fit the given criteria."""
         pass
 
@@ -27,10 +27,14 @@ class DataModel(object):
         """Setup this data model."""
         pass
 
-    def save(self):
+    def save(self, commit = True):
         """Save changes to this data model to the database."""
         pass
 
     def discard(self):
         """Discard unsaved changes to the database."""
+        pass
+
+    def delete(self, commit = True):
+        """Delete this data model from the database."""
         pass

@@ -2,7 +2,6 @@
 
 import inspect
 
-from .common import Field
 from .filters import _fields
 
 
@@ -22,7 +21,7 @@ class DataModel(object):
         indexes = []
 
         for name, field in cls._get_fields():
-            #Skip __weakref__
+            #Skip "__weakref__"
             if name == "__weakref__":
                 continue
 
@@ -46,10 +45,14 @@ class DataModel(object):
             if field._key:
                 indexes.append(name)
 
+            #Create foreign key?
+            if field._foreign_key is not None:
+                sql += f" CONSTRAINT {cls.table}_{name} REFERENCES {field._foreign_key.table}(id) ON DELETE CASCADE"
+
             sql += ", "
 
         sql = sql[:-2] + ");"
-        print(sql)
+        #print(sql)
 
         #Create table
         cls._cursor.execute(sql)
@@ -57,15 +60,16 @@ class DataModel(object):
         #Create each index
         for index in indexes:
             sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}({index});"
-            print(sql)
+            #print(sql)
             cls._cursor.execute(sql)
 
     @classmethod
-    def filter(cls, order_by = "id", **kwargs):
+    def filter(cls, order_by = "id", limit = 0, **kwargs):
         """Fetch all models which fit the given criteria."""
         #Generate filter SQL
         sql = f"SELECT id FROM {cls.table}"
-        order = f" ORDER BY {order_by};"
+        order = f" ORDER BY {order_by}"
+        limit = (f" LIMIT {limit};" if limit > 0 else ";")
 
         if len(kwargs):
             #Build WHERE clause
@@ -107,15 +111,15 @@ class DataModel(object):
                     sql += f" {name[:-4]} >= ?"
 
             #Return results
-            sql += order
+            sql += order + limit
             params = tuple(kwargs.values())
-            print(sql)
-            print(f"Params: {params}")
+            #print(sql)
+            #print(f"Params: {params}")
             return [cls(id = row[0]) for row in cls._cursor.execute(sql, params)]
 
         #Return results
-        sql += order
-        print(sql)
+        sql += order + limit
+        #print(sql)
         return [cls(id = row[0]) for row in cls._cursor.execute(sql)]
 
     @classmethod
@@ -138,7 +142,7 @@ class DataModel(object):
             tail = ") VALUES ("
 
             for name, field in self._get_fields():
-                #Skip __weakref__
+                #Skip "__weakref__"
                 if name == "__weakref__":
                     continue
 
@@ -148,7 +152,7 @@ class DataModel(object):
 
             self.__class__._insert_sql = head[:-2] + tail[:-2] + ");"
 
-    def save(self):
+    def save(self, commit = True):
         """Save changes to this data model to the database."""
         #Does the record for this data model exist in the database?
         if self.id is None:
@@ -156,12 +160,25 @@ class DataModel(object):
             params = [value._pop_cache(self) for name, value in self._get_fields()]
             self._cursor.execute(self._insert_sql, params)
             self.id = self._cursor.execute("SELECT LAST_INSERT_ROWID();").fetchone()[0]
-            print(self._insert_sql)
-            print(f"Params: {params}")
+            #print(self._insert_sql)
+            #print(f"Params: {params}")
 
-        #Commit the transaction
-        self._cursor.execute("COMMIT;")
+        #Commit the transaction?
+        if commit:
+            self._cursor.execute("COMMIT;")
 
     def discard(self):
         """Discard unsaved changes to the database."""
         self._cursor.execute("ROLLBACK;")
+
+    def delete(self, commit = True):
+        """Delete this data model from the database."""
+        sql = f"DELETE FROM {self.table} WHERE id = ?;"
+        params = (self.id,)
+        self._cursor.execute(sql, params)
+        #print(sql)
+        #print(f"Params: {params}")
+
+        #Commit the transaction?
+        if commit:
+            self._cursor.execute("COMMIT;")

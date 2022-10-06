@@ -44,12 +44,14 @@ class Field(object):
         self._unique = (kwargs["unique"] if "unique" in kwargs else False)
         self._not_null = (kwargs["not_null"] if "not_null" in kwargs else False)
         self._key = (kwargs["key"] if "key" in kwargs else False)
+        self._foreign_key = None
         self._get = None
         self._set = None
 
     def __set_name__(self, owner, name):
         """Store field name."""
         self._name = name
+        self._full_name = f"{owner.table}({name})"
 
     def __get__(self, instance, owner = None):
         """Get the value of this field."""
@@ -78,3 +80,18 @@ class Field(object):
 
         #Return default value
         return self._default
+
+
+class BackReference(object):
+    """A reference to a collection of data models that refer to a given data model."""
+    def __init__(self, foreign_model, foreign_key):
+        """Setup this back refernce."""
+        self._foreign_model = foreign_model
+        self._foreign_key = foreign_key
+
+    def __get__(self, instance, owner = None):
+        """Return all data models of the foreign model's type that have a foeign key which refers
+        to the given model instance.
+        """
+        kwargs = {self._foreign_key + "_eq": instance.id}
+        return self._foreign_model.filter(**kwargs)

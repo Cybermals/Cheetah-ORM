@@ -6,7 +6,7 @@ It supports multiple database backends including sqlite3, MySQL/MariaDB, and Pos
 
 #Constants
 #=========
-__version__ = "1.0.0"
-__author__ = "DylanCheetah"
+__version__ = "1.0.0a"
+__author__ = "Cybermals"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2022 by Cybermals"

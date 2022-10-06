@@ -118,15 +118,15 @@ class TestSQLiteDBDriver(unittest.TestCase):
             token = tok4,
             joined = dt4
         )
-        print(p1._insert_sql)
+        #print(p1._insert_sql)
 
         #Save all 4 players
-        p1.save()
-        p2.save()
-        p3.save()
+        p1.save(commit = False)
+        p2.save(commit = False)
+        p3.save(commit = False)
         p4.save()
 
-        #Test data
+        #Verify the data
         self.assertEqual(p1.id, 1)
         self.assertEqual(p1.name, "Sam")
         self.assertEqual(p1.pswd, "cat")
@@ -183,7 +183,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
         susan.age = 20
         susan.save()
 
-        #Test data
+        #Verify the data
         self.assertEqual(billy.age, 10)
         self.assertEqual(susan.age, 20)
 
@@ -207,93 +207,105 @@ class TestSQLiteDBDriver(unittest.TestCase):
 
         #Fetch all players sorted by name
         players = Player.filter(order_by = "name")
-        print()
-        print("Players")
-        print("=======")
+        # print()
+        # print("Players")
+        # print("=======")
         
-        for player in players:
-            print(player)
+        # for player in players:
+        #     print(player)
+
+        self.assertTrue(len(players) == 4)
 
         #Fetch all players with an age of 20
         players = Player.filter(age_eq = 20)
-        print()
-        print("Players with an Age of 20")
-        print("=========================")
+        # print()
+        # print("Players with an Age of 20")
+        # print("=========================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertEqual(player.age, 20)
 
         #Fetch all players with an age that isn't 20
         players = Player.filter(age_neq = 20)
-        print()
-        print("Players with an Age that isn't 20")
-        print("=================================")
+        # print()
+        # print("Players with an Age that isn't 20")
+        # print("=================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertNotEqual(player.age, 20)
 
         #Fetch all players with a score less than 5000
         players = Player.filter(avg_score_lt = 5000)
-        print()
-        print("Players with a Score Less Than 5000")
-        print("===================================")
+        # print()
+        # print("Players with a Score Less Than 5000")
+        # print("===================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertLess(player.avg_score, 5000)
 
         #Fetch all players with a score greater than 50
         players = Player.filter(avg_score_gt = 50)
-        print()
-        print("Players with a Score Greater Than 50")
-        print("====================================")
+        # print()
+        # print("Players with a Score Greater Than 50")
+        # print("====================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertGreater(player.avg_score, 50)
 
         #Fetch all players with a score less than or equal to 50.9
         players = Player.filter(avg_score_lte = 50.9)
-        print()
-        print("Players with a Score Less Than or Equal to 50.9")
-        print("================================================")
+        # print()
+        # print("Players with a Score Less Than or Equal to 50.9")
+        # print("================================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertLessEqual(player.avg_score, 50.9)
 
         #Fetch all players with an age greater than or equal to 20
         players = Player.filter(age_gte = 20)
-        print()
-        print("Players with an Age Greater Than or Equal to 20")
-        print("===============================================")
+        # print()
+        # print("Players with an Age Greater Than or Equal to 20")
+        # print("===============================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertGreaterEqual(player.age, 20)
 
         #Fetch all players with an age greater than or equal to 20 and a score greater than 50
         players = Player.filter(age_gte = 20, and_avg_score_gt = 50)
-        print()
-        print("Players with an Age Greater Than or Equal to 20 and a Score Greater Than 50")
-        print("===========================================================================")
+        # print()
+        # print("Players with an Age Greater Than or Equal to 20 and a Score Greater Than 50")
+        # print("===========================================================================")
 
         for player in players:
-            print(player)
-            self.assertGreaterEqual(player.age, 20)
-            self.assertGreater(player.avg_score, 50)
+            #print(player)
+            self.assertTrue(player.age >= 20 and player.avg_score > 50)
 
         #Fetch all players with an age less than 30 or a score greater than 50
         players = Player.filter(age_lt = 30, or_avg_score_gt = 50)
-        print()
-        print("Players with an Age Less Than 30 or a Score Greater Than 50")
-        print("===========================================================")
+        # print()
+        # print("Players with an Age Less Than 30 or a Score Greater Than 50")
+        # print("===========================================================")
 
         for player in players:
-            print(player)
+            #print(player)
             self.assertTrue(player.age < 30 or player.avg_score > 50)
+
+        #Fetch the middle 2 players
+        players = Player.filter(id_gte = 2, limit = 2)
+        # print()
+        # print("Middle 2 Players")
+        # print("================")
+
+        # for player in players:
+        #     print(player)
+        
+        self.assertEqual(len(players), 2)
 
     def test_5_indexes(self):
         """Test SQLite indexes."""
@@ -317,12 +329,17 @@ class TestSQLiteDBDriver(unittest.TestCase):
             name = "Dylan",
             pswd = "cheetah",
             email = "cybermals@googlegroups.com"
-        ).save()
+        ).save(commit = False)
 
         User(
             name = "Fiona",
             pswd = "fox",
             email = "cybermals.group@gmail.com"
+        ).save(commit = False)
+        User(
+            name = "Zorcodo",
+            pswd = "moose",
+            email = "none"
         ).save()
 
         #This should cause the unique constraint to fail
@@ -334,6 +351,66 @@ class TestSQLiteDBDriver(unittest.TestCase):
                 email = "cybermals.group@gmail.com"
             ).save
         )
+
+    def test_6_foreign_keys(self):
+        """Test SQLite foreign keys."""
+        from datetime import datetime
+
+        from cheetah_orm.db import DataModel, fields
+
+        #Create data models
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(length = 32, unique = True, not_null = True, key = True)
+            pswd = fields.PswdField(length = 128, not_null = True)
+            email = fields.StringField(length = 256, unique = True, not_null = True)
+            ban = fields.DateTimeField(default = datetime.now())
+
+        class Post(DataModel):
+            table = "posts"
+            user = fields.IntField(foreign_key = User)
+            date = fields.DateTimeField(not_null = True)
+            content = fields.StringField(length = 65535, not_null = True)
+
+        Post.init_table()
+
+        #Fetch 2 users
+        dylan, zorcodo = User.filter(name_eq = "Dylan", or_name_eq = "Zorcodo")
+
+        #Create some posts
+        Post(
+            user = dylan,
+            date = datetime.now(),
+            content = "Welcome everyone!"
+        ).save(commit = False)
+        Post(
+            user = dylan,
+            date = datetime.now(),
+            content = "How's everyone doing today?"
+        ).save(commit = False)
+        Post(
+            user = zorcodo,
+            date = datetime.now(),
+            content = "Mwahaha! You'll see."
+        ).save(commit = False)
+        Post(
+            user = zorcodo,
+            date = datetime.now(),
+            content = "My evil plan is about to come to fruition."
+        ).save()
+
+        #Verify the data
+        latest_post = Post.filter(order_by = "date")[-1]
+        self.assertEqual(latest_post.user.name, zorcodo.name)
+        self.assertEqual(len(dylan.Posts), 2)
+
+        #Delete a user that has posted
+        zorcodo.delete()
+
+        #Verify the data
+        users = User.filter()
+        posts = Post.filter()
+        self.assertTrue(len(users) == 2 and len(posts) == 2)
 
 
 #Entry Point
