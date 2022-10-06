@@ -23,7 +23,7 @@ A lightweight and high-performance object relational mappper written in pure Pyt
 
 
 ## Usage
-```
+```python
 #Connect to a database. This must be done before importing the data model and field classes.
 from cheetah_orm import db
 db.connect("sqlite3", database = ":memory:")
