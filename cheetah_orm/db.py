@@ -1,7 +1,5 @@
 """Cheetah ORM - Database Driver"""
 
-from . import dummy_fields as fields
-from .dummy_model import DataModel
 from .exceptions import UnknownDBDriver
 
 

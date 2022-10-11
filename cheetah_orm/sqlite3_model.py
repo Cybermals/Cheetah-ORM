@@ -64,12 +64,19 @@ class DataModel(object):
             cls._cursor.execute(sql)
 
     @classmethod
-    def filter(cls, order_by = "id", limit = 0, **kwargs):
+    def drop_table(cls):
+        """Drop the table for this data model."""
+        sql = f"DROP TABLE {cls.table};"
+        #print(sql)
+        cls._cursor.execute(sql)
+
+    @classmethod
+    def filter(cls, order_by = "id", descending = False, offset = 0, limit = 0, **kwargs):
         """Fetch all models which fit the given criteria."""
         #Generate filter SQL
         sql = f"SELECT id FROM {cls.table}"
-        order = f" ORDER BY {order_by}"
-        limit = (f" LIMIT {limit};" if limit > 0 else ";")
+        order = f" ORDER BY {order_by}" + (" DESC" if descending else "")
+        limit = (f" LIMIT {limit} OFFSET {offset};" if limit > 0 else ";")
 
         if len(kwargs):
             #Build WHERE clause

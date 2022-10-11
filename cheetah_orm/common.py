@@ -57,7 +57,8 @@ class Field(object):
         """Get the value of this field."""
         #Does the record for the data model exist in the database?
         if instance.id is not None:
-            return self._cursor.execute(self._get, (instance.id,)).fetchone()[0]
+            self._cursor.execute(self._get, (instance.id,))
+            return self._cursor.fetchone()[0]
 
         return (instance._cache[self._name] if self._name in instance._cache else self._default)
 
