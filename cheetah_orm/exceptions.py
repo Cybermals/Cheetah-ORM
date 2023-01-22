@@ -1,10 +1,11 @@
 """Cheetah ORM - Exceptions"""
 
 
-#Classes
-#=======
+# Classes
+# =======
 class ORMException(Exception):
     """Base class for an ORM exception."""
+
     def __init__(self, msg):
         """Setup this exception."""
         self.msg = msg

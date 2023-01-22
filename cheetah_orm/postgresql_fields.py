@@ -3,8 +3,8 @@
 from .common import BackReference, Field, Password
 
 
-#Classes
-#=======
+# Classes
+# =======
 class IntField(Field):
     """An integer field."""
     _type = "INTEGER"
@@ -12,7 +12,8 @@ class IntField(Field):
     def __init__(self, **kwargs):
         """Setup this field."""
         super().__init__(**kwargs)
-        self._foreign_key = (kwargs["foreign_key"] if "foreign_key" in kwargs else None)
+        self._foreign_key = (kwargs["foreign_key"]
+                             if "foreign_key" in kwargs else None)
 
     def __set_name__(self, owner, name):
         """Generate the metadata and get/set SQL for this field and add a foreign key
@@ -20,27 +21,28 @@ class IntField(Field):
         """
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
-        #Add foreign key backreference?
+        # Add foreign key backreference?
         if self._foreign_key is not None:
-            setattr(self._foreign_key, owner.__name__ + "s", BackReference(owner, name))
+            setattr(self._foreign_key, owner.__name__ +
+                    "s", BackReference(owner, name))
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         """Get the value of this field."""
         value = super().__get__(instance, owner)
 
-        #Is this field a foreign key?
+        # Is this field a foreign key?
         if self._foreign_key is not None:
-            return self._foreign_key(id = value)
+            return self._foreign_key(id=value)
 
         return value
 
     def __set__(self, instance, value):
         """Set the value of this field."""
-        #If the value a foreign key instance?
+        # If the value a foreign key instance?
         if self._foreign_key is not None and isinstance(value, self._foreign_key):
             value = value.id
 
@@ -55,7 +57,7 @@ class FloatField(Field):
         """Generate the get/set SQL for this field."""
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
@@ -74,7 +76,7 @@ class StringField(Field):
         """Generate get/set SQL for this field."""
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
@@ -87,7 +89,7 @@ class BinaryField(Field):
         """Generate get/set SQL for this field."""
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
@@ -100,11 +102,11 @@ class DateTimeField(Field):
         """Generate get/set SQL for this field."""
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         """Get the value of this field."""
         return super().__get__(instance, owner)
 
@@ -115,18 +117,19 @@ class DateTimeField(Field):
 
 class PswdField(StringField):
     """A password field."""
+
     def __set_name__(self, owner, name):
         """Generate get/set SQL for this field."""
         super().__set_name__(owner, name)
 
-        #Generate SQL statements
+        # Generate SQL statements
         self._get = f"SELECT {name} FROM {owner.table} WHERE id = %s;"
         self._set = f"UPDATE {owner.table} SET {name} = %s WHERE id = %s;"
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         """Get the value of this field."""
-        return Password(hash = super().__get__(instance, owner))
+        return Password(hash=super().__get__(instance, owner))
 
     def __set__(self, instance, value):
         """Set the value of this field."""
-        super().__set__(instance, str(Password(pswd = value)))
+        super().__set__(instance, str(Password(pswd=value)))

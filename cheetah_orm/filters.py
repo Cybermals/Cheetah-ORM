@@ -5,7 +5,7 @@ import inspect
 from .common import Field
 
 
-#Functions
-#=========
+# Functions
+# =========
 def _fields(obj):
     return inspect.isdatadescriptor(obj)

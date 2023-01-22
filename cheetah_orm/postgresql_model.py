@@ -5,8 +5,8 @@ import inspect
 from .filters import _fields
 
 
-#Classes
-#=======
+# Classes
+# =======
 class DataModel(object):
     """Base class for a MySQL/MariaDB data model."""
     _cursor = None
@@ -16,16 +16,16 @@ class DataModel(object):
     @classmethod
     def init_table(cls):
         """Initialize the table for this data model."""
-        #Generate table SQL
+        # Generate table SQL
         sql = f"CREATE TABLE IF NOT EXISTS {cls.table}(id SERIAL PRIMARY KEY, "
         indexes = []
 
         for name, field in cls._get_fields():
-            #Skip "__weakref__"
+            # Skip "__weakref__"
             if name == "__weakref__":
                 continue
 
-            #Add next field
+            # Add next field
             sql += f"{name} {field._type}"
 
             if field._default is not None:
@@ -41,138 +41,140 @@ class DataModel(object):
             if field._not_null:
                 sql += " NOT NULL"
 
-            #Create index?
+            # Create index?
             if field._key:
                 indexes.append(name)
 
-            #Create foreign key?
+            # Create foreign key?
             if field._foreign_key is not None:
                 sql += f" CONSTRAINT {cls.table}_{name} REFERENCES {field._foreign_key.table}(id) ON DELETE CASCADE"
 
             sql += ", "
 
         sql = sql[:-2] + ");"
-        #print(sql)
+        # print(sql)
 
-        #Create table
+        # Create table
         cls._cursor.execute(sql)
 
-        #Create each index
+        # Create each index
         for index in indexes:
             sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}({index});"
-            #print(sql)
+            # print(sql)
             cls._cursor.execute(sql)
 
     @classmethod
     def drop_table(cls):
         """Drop the table for this data model."""
         sql = f"DROP TABLE {cls.table};"
-        #print(sql)
+        # print(sql)
         cls._cursor.execute(sql)
 
     @classmethod
-    def filter(cls, order_by = "id", descending = False, offset = 0, limit = 0, **kwargs):
+    def filter(cls, order_by="id", descending=False, offset=0, limit=0, **kwargs):
         """Fetch all models which fit the given criteria."""
-        #Generate filter SQL
+        # Generate filter SQL
         sql = f"SELECT id FROM {cls.table}"
         order = f" ORDER BY {order_by}" + (" DESC" if descending else "")
         limit = (f" LIMIT {limit} OFFSET {offset};" if limit > 0 else ";")
 
         if len(kwargs):
-            #Build WHERE clause
+            # Build WHERE clause
             sql += " WHERE"
 
             for name, value in kwargs.items():
-                #And?
+                # And?
                 if name.startswith("and_"):
                     sql += " AND"
                     name = name[4:]
 
-                #Or?
+                # Or?
                 elif name.startswith("or_"):
                     sql += " OR"
                     name = name[3:]
 
-                #Equal?
+                # Equal?
                 if name.endswith("_eq"):
                     sql += f" {name[:-3]} = %s"
 
-                #Not equal?
+                # Not equal?
                 elif name.endswith("_neq"):
                     sql += f" {name[:-4]} != %s"
 
-                #Less than?
+                # Less than?
                 elif name.endswith("_lt"):
                     sql += f" {name[:-3]} < %s"
 
-                #Greater than?
+                # Greater than?
                 elif name.endswith("_gt"):
                     sql += f" {name[:-3]} > %s"
 
-                #Less than or equal to?
+                # Less than or equal to?
                 elif name.endswith("_lte"):
                     sql += f" {name[:-4]} <= %s"
 
-                #Greater than or equal to?
+                # Greater than or equal to?
                 elif name.endswith("_gte"):
                     sql += f" {name[:-4]} >= %s"
 
-            #Return results
+            # Return results
             sql += order + limit
             params = tuple(kwargs.values())
-            #print(sql)
-            #print(f"Params: {params}")
+            # print(sql)
+            # print(f"Params: {params}")
             cls._cursor.execute(sql, params)
-            return [cls(id = row[0]) for row in cls._cursor.fetchall()]
+            return [cls(id=row[0]) for row in cls._cursor.fetchall()]
 
-        #Return results
+        # Return results
         sql += order + limit
-        #print(sql)
+        # print(sql)
         cls._cursor.execute(sql)
-        return [cls(id = row[0]) for row in cls._cursor.fetchall()]
+        return [cls(id=row[0]) for row in cls._cursor.fetchall()]
 
     @classmethod
     def _get_fields(cls):
         """Return a list of (name, field) pairs for each field in this data model."""
         return [item for item in inspect.getmembers(cls, _fields) if item[0] != "__weakref__"]
 
-    def __init__(self, id = None, **kwargs):
+    def __init__(self, id=None, **kwargs):
         """Setup this data model."""
         self.id = id
         self._cache = {}
 
-        #Initialize fields
+        # Initialize fields
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        #Generate insert row SQL?
+        # Generate insert row SQL?
         if self._insert_sql is None:
             head = f"INSERT INTO {self.table}("
             tail = ") VALUES ("
 
             for name, field in self._get_fields():
-                #Skip "__weakref__"
+                # Skip "__weakref__"
                 if name == "__weakref__":
                     continue
 
-                #Add next field
+                # Add next field
                 head += f"{name}, "
                 tail += "%s, "
 
-            self.__class__._insert_sql = head[:-2] + tail[:-2] + ") RETURNING id;"
+            self.__class__._insert_sql = head[:-
+                                              2] + tail[:-2] + ") RETURNING id;"
 
-    def save(self, commit = True):
+    def save(self, commit=True):
         """Save changes to this data model to the database."""
-        #Does the record for this data model exist in the database?
+        # Does the record for this data model exist in the database?
         if self.id is None:
-            #Insert the data model into its table and fetch its ID
-            params = [value._pop_cache(self) for name, value in self._get_fields()]
-            #print(self._insert_sql)
-            #print(f"Params: {params}")
+            # Insert the data model into its table and fetch its ID
+            params = [value._pop_cache(self)
+                      for name, value in self._get_fields()]
+            # print(self._insert_sql)
+            # print(f"Params: {params}")
             self._cursor.execute(self._insert_sql, params)
             self.id = self._cursor.fetchone()[0]
 
-        #Commit the transaction?
+        # Commit the transaction?
         if commit:
             self._cursor.execute("COMMIT;")
 
@@ -180,14 +182,14 @@ class DataModel(object):
         """Discard unsaved changes to the database."""
         self._cursor.execute("ROLLBACK;")
 
-    def delete(self, commit = True):
+    def delete(self, commit=True):
         """Delete this data model from the database."""
         sql = f"DELETE FROM {self.table} WHERE id = %s;"
         params = (self.id,)
         self._cursor.execute(sql, params)
-        #print(sql)
-        #print(f"Params: {params}")
+        # print(sql)
+        # print(f"Params: {params}")
 
-        #Commit the transaction?
+        # Commit the transaction?
         if commit:
             self._cursor.execute("COMMIT;")

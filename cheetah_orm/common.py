@@ -3,21 +3,22 @@
 from passlib.context import CryptContext
 
 
-#Globals
-#=======
+# Globals
+# =======
 hasher = CryptContext(
-    schemes = ["pbkdf2_sha256", "bcrypt", "argon2"],
-    deprecated = "auto"
+    schemes=["pbkdf2_sha256", "bcrypt", "argon2"],
+    deprecated="auto"
 )
 
 
-#Classes
-#=======
+# Classes
+# =======
 class Password(object):
     """Password abstraction wrapper."""
+
     def __init__(self, **kwargs):
         """Setup this password."""
-        #Raw password or hash?
+        # Raw password or hash?
         if "pswd" in kwargs:
             self._hash = hasher.hash(kwargs["pswd"])
 
@@ -42,7 +43,8 @@ class Field(object):
         """Setup this field."""
         self._default = (kwargs["default"] if "default" in kwargs else None)
         self._unique = (kwargs["unique"] if "unique" in kwargs else False)
-        self._not_null = (kwargs["not_null"] if "not_null" in kwargs else False)
+        self._not_null = (kwargs["not_null"]
+                          if "not_null" in kwargs else False)
         self._key = (kwargs["key"] if "key" in kwargs else False)
         self._foreign_key = None
         self._get = None
@@ -53,9 +55,9 @@ class Field(object):
         self._name = name
         self._full_name = f"{owner.table}({name})"
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         """Get the value of this field."""
-        #Does the record for the data model exist in the database?
+        # Does the record for the data model exist in the database?
         if instance.id is not None:
             self._cursor.execute(self._get, (instance.id,))
             return self._cursor.fetchone()[0]
@@ -64,7 +66,7 @@ class Field(object):
 
     def __set__(self, instance, value):
         """Set the value of this field."""
-        #Does the record for the data model exist in the database?
+        # Does the record for the data model exist in the database?
         if instance.id is not None:
             self._cursor.execute(self._set, (value, instance.id))
 
@@ -73,24 +75,25 @@ class Field(object):
 
     def _pop_cache(self, instance):
         """Pop the cached value for this field."""
-        #Is there a cached value?
+        # Is there a cached value?
         if self._name in instance._cache:
             value = instance._cache[self._name]
             del instance._cache[self._name]
             return value
 
-        #Return default value
+        # Return default value
         return self._default
 
 
 class BackReference(object):
     """A reference to a collection of data models that refer to a given data model."""
+
     def __init__(self, foreign_model, foreign_key):
         """Setup this back refernce."""
         self._foreign_model = foreign_model
         self._foreign_key = foreign_key
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         """Return all data models of the foreign model's type that have a foeign key which refers
         to the given model instance.
         """

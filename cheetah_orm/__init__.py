@@ -4,9 +4,9 @@ Cheetah ORM is a lightweight and high-performance object relational mapper writt
 It supports multiple database backends including sqlite3, MySQL/MariaDB, and PostgreSQL.
 """
 
-#Constants
-#=========
+# Constants
+# =========
 __author__ = "Cybermals"
 __copyright__ = "Copyright (c) 2022 by Cybermals"
 __license__ = "MIT"
-__version__ = "1.0.0b"
+__version__ = "1.0.0b2"
