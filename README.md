@@ -72,7 +72,7 @@ Post.init_table()
 # commit the entire transaction.
 dylan = User(
     name="Dylan",
-    pswd= "cheetah,
+    pswd= "cheetah",
     email="cybermals@googlegroups.com"
 )
 dylan.save(commit=False)
