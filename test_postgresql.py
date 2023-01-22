@@ -24,6 +24,7 @@ class TestPostgreSQLDBDriver(unittest.TestCase):
         cur = db._db.cursor()
         cur.execute("DROP TABLE IF EXISTS posts;")
         cur.execute("DROP TABLE IF EXISTS users;")
+        cur.execute("DROP TABLE IF EXISTS players;")
 
     def test_1_model(self):
         """Test PostgreSQL data model."""

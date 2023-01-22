@@ -5,6 +5,10 @@ A lightweight and high-performance object relational mappper written in pure Pyt
 ## Installation
 `pip install cheetah_orm`
 
+Note: To use MySQL or MariaDB you will need to install the "mysql_connector_python" package as well. And
+to use PostgreSQL, you will need to install the "psycopg" package too. SQLite support requires no
+additonal packages.
+
 
 ## Building
 1. clone this repo
@@ -14,12 +18,17 @@ A lightweight and high-performance object relational mappper written in pure Pyt
 
 
 ## Features
-* support for sqlite3, MariaDB/MySQL (coming soon), and PostgreSQL (coming soon)
+* support for sqlite3, MariaDB/MySQL, and PostgreSQL
 * high-level database-neutral API written in pure Python
 * automatically generates the needed SQL statements for whichever database system you prefer to
   use
 * rich filtering API supports equality, inequality, less than, greater than, less than or equal 
   to, greater than or equal to, logical or, and logical and as well as sorting and limits
+
+
+## Known Bugs
+* dropping a table fails when a PostgreSQL table was recently accessed during a database session due to
+  table locking
 
 
 ## Usage
