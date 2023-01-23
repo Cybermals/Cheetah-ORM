@@ -51,6 +51,11 @@ class IntField(Field):
         super().__set__(instance, value)
 
 
+class BigIntField(IntField):
+    """A big integer field."""
+    _type = "BIGINT"
+
+
 class FloatField(Field):
     """A float field."""
     _type = "FLOAT"

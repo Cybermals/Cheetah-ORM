@@ -71,6 +71,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             avg_score = fields.FloatField(default=0, not_null=True)
             token = fields.BinaryField(not_null=True)
             joined = fields.DateTimeField(not_null=True)
+            player_id = fields.BigIntField(not_null=True)
 
         Player.init_table()
 
@@ -88,7 +89,8 @@ class TestSQLiteDBDriver(unittest.TestCase):
             age=20,
             avg_score=21.5,
             token=tok1,
-            joined=dt1
+            joined=dt1,
+            player_id=468523841384123841
         )
 
         dt2 = datetime.now()
@@ -98,7 +100,8 @@ class TestSQLiteDBDriver(unittest.TestCase):
             age=30,
             avg_score=50.9,
             token=tok2,
-            joined=dt2
+            joined=dt2,
+            player_id=987225841357412593
         )
 
         dt3 = datetime.now()
@@ -108,7 +111,8 @@ class TestSQLiteDBDriver(unittest.TestCase):
             age=80,
             avg_score=5000,
             token=tok3,
-            joined=dt3
+            joined=dt3,
+            player_id=1236479546317896537
         )
 
         dt4 = datetime.now()
@@ -117,7 +121,8 @@ class TestSQLiteDBDriver(unittest.TestCase):
             pswd="boy",
             age=10,
             token=tok4,
-            joined=dt4
+            joined=dt4,
+            player_id=3248978531364965324
         )
         # print(p1._insert_sql)
 
@@ -135,6 +140,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
         self.assertEqual(p1.avg_score, 21.5)
         self.assertEqual(p1.token, tok1)
         self.assertEqual(p1.joined, dt1)
+        self.assertEqual(p1.player_id, 468523841384123841)
 
         self.assertEqual(p2.id, 2)
         self.assertEqual(p2.name, "Jake")
@@ -143,6 +149,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
         self.assertEqual(p2.avg_score, 50.9)
         self.assertEqual(p2.token, tok2)
         self.assertEqual(p2.joined, dt2)
+        self.assertEqual(p2.player_id, 987225841357412593)
 
         self.assertEqual(p3.id, 3)
         self.assertEqual(p3.name, "Susan")
@@ -151,6 +158,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
         self.assertEqual(p3.avg_score, 5000)
         self.assertEqual(p3.token, tok3)
         self.assertEqual(p3.joined, dt3)
+        self.assertEqual(p3.player_id, 1236479546317896537)
 
         self.assertEqual(p4.id, 4)
         self.assertEqual(p4.name, "Billy")
@@ -159,6 +167,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
         self.assertEqual(p4.avg_score, 0)
         self.assertEqual(p4.token, tok4)
         self.assertEqual(p4.joined, dt4)
+        self.assertEqual(p4.player_id, 3248978531364965324)
 
     def test_3_field_modification(self):
         """Test SQLite field modification."""
@@ -441,6 +450,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             avg_score = fields.FloatField(default=0, not_null=True)
             token = fields.BinaryField(not_null=True)
             joined = fields.DateTimeField(not_null=True)
+            player_id = fields.BigIntField(not_null=True)
 
         Player.drop_table()
 

@@ -94,7 +94,7 @@ class BackReference(object):
         self._foreign_key = foreign_key
 
     def __get__(self, instance, owner=None):
-        """Return all data models of the foreign model's type that have a foeign key which refers
+        """Return all data models of the foreign model's type that have a foreign key which refers
         to the given model instance.
         """
         kwargs = {self._foreign_key + "_eq": instance.id}

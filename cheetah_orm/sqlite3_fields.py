@@ -51,6 +51,10 @@ class IntField(Field):
         super().__set__(instance, value)
 
 
+class BigIntField(IntField):
+    """A big integer field."""
+
+
 class FloatField(Field):
     """A float field."""
     _type = "FLOAT"
@@ -119,7 +123,6 @@ class DateTimeField(Field):
 
 class PswdField(StringField):
     """A password field."""
-
     def __set_name__(self, owner, name):
         """Generate get/set SQL for this field."""
         super().__set_name__(owner, name)
