@@ -460,6 +460,17 @@ class TestSQLiteDBDriver(unittest.TestCase):
             Player.filter
         )
 
+    def test_8_string_field_default(self):
+        """Test string field default value."""
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data model
+        class Word(DataModel):
+            table = "words"
+            word = fields.StringField(length=32, not_null=True, default="")
+
+        Word.init_table()
+
 
 # Entry Point
 # ===========

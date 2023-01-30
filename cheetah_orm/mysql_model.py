@@ -29,7 +29,7 @@ class DataModel(object):
             sql += f"{name} {field._type}"
 
             if field._default is not None:
-                if field._type in ["VARCHAR", "TEXT", "BLOB", "DATETIME"]:
+                if field._type in ["TEXT", "BLOB", "DATETIME"] or field._type.startswith("VARCHAR"):
                     sql += f" DEFAULT '{field._default}'"
 
                 else:
