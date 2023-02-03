@@ -120,7 +120,7 @@ class DataModel(object):
 
             # Return results
             sql += order + limit
-            params = tuple(kwargs.values())
+            params = [(param.id if isinstance(param, DataModel) else param) for param in kwargs.values()]
             # print(sql)
             # print(f"Params: {params}")
             cls._cursor.execute(sql, params)

@@ -9,4 +9,4 @@ It supports multiple database backends including sqlite3, MySQL/MariaDB, and Pos
 __author__ = "Cybermals"
 __copyright__ = "Copyright (c) 2022 by Cybermals"
 __license__ = "MIT"
-__version__ = "1.0.0b5"
+__version__ = "1.0.0b6"

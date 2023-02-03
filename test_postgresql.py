@@ -476,6 +476,33 @@ class TestPostgreSQLDBDriver(unittest.TestCase):
 
         Word.init_table()
 
+    def test_9_filter_by_foreign_key(self):
+        """Test filtering by a foreign key."""
+        from datetime import datetime
+
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(
+                length=32, unique=True, not_null=True, key=True)
+            pswd = fields.PswdField(length=128, not_null=True)
+            email = fields.StringField(length=256, unique=True, not_null=True)
+            ban = fields.DateTimeField(default=datetime.now())
+
+        class Post(DataModel):
+            table = "posts"
+            author = fields.IntField(foreign_key=User)
+            date = fields.DateTimeField(not_null=True)
+            content = fields.StringField(length=65535, not_null=True)
+
+        # Fetch Dylan
+        dylan = User.filter(name_eq="Dylan")[0]
+
+        # Fetch Dylan's posts without using the backref
+        self.assertEqual(len(Post.filter(author_eq=dylan)), 2)
+
 
 # Entry Point
 # ===========
