@@ -2,6 +2,7 @@
 
 import inspect
 
+from .exceptions import InvalidFilter
 from .filters import _fields
 
 
@@ -82,6 +83,7 @@ class DataModel(object):
         if len(kwargs):
             # Build WHERE clause
             sql += " WHERE"
+            first_field = True
 
             for name, value in kwargs.items():
                 # And?
@@ -93,6 +95,10 @@ class DataModel(object):
                 elif name.startswith("or_"):
                     sql += " OR"
                     name = name[3:]
+
+                # First field?
+                elif not first_field:
+                    raise InvalidFilter("Every field after the first must have a boolean operator.")
 
                 # Equal?
                 if name.endswith("_eq"):
@@ -117,6 +123,12 @@ class DataModel(object):
                 # Greater than or equal to?
                 elif name.endswith("_gte"):
                     sql += f" {name[:-4]} >= %s"
+
+                # No comparison operator?
+                else:
+                    raise InvalidFilter("Every field must have a comparision operator.")
+
+                first_field = False
 
             # Return results
             sql += order + limit

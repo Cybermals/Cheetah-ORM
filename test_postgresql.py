@@ -503,6 +503,36 @@ class TestPostgreSQLDBDriver(unittest.TestCase):
         # Fetch Dylan's posts without using the backref
         self.assertEqual(len(Post.filter(author_eq=dylan)), 2)
 
+    def test_10_invalid_filter(self):
+        """Test invalid filter."""
+        from datetime import datetime
+
+        from cheetah_orm.db import DataModel, fields
+        from cheetah_orm.exceptions import InvalidFilter
+
+        # Create data models
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(
+                length=32, unique=True, not_null=True, key=True)
+            pswd = fields.PswdField(length=128, not_null=True)
+            email = fields.StringField(length=256, unique=True, not_null=True)
+            ban = fields.DateTimeField(default=datetime.now())
+
+        # Try using an invalid filter
+        self.assertRaises(
+            InvalidFilter,
+            User.filter,
+            name_eq="Dylan",
+            email_eq="cybermals@googlegroups.com"
+        )
+
+        self.assertRaises(
+            InvalidFilter,
+            User.filter,
+            name="Dylan"
+        )
+
 
 # Entry Point
 # ===========

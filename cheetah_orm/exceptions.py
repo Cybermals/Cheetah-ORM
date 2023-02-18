@@ -16,6 +16,11 @@ class ORMException(Exception):
 
 
 class UnknownDBDriver(ORMException):
+    """Unknown database driver exception."""
     def __init__(self, driver):
         """Setup this exception."""
         super().__init__(f"Unknown database driver '{driver}'.")
+
+
+class InvalidFilter(ORMException):
+    """Invalid filter exception."""
