@@ -25,6 +25,7 @@ class TestPostgreSQLDBDriver(unittest.TestCase):
         cur.execute("DROP TABLE IF EXISTS posts;")
         cur.execute("DROP TABLE IF EXISTS users;")
         cur.execute("DROP TABLE IF EXISTS players;")
+        cur.execute("DROP TABLE IF EXISTS customers;")
 
     def test_1_model(self):
         """Test PostgreSQL data model."""
@@ -532,6 +533,20 @@ class TestPostgreSQLDBDriver(unittest.TestCase):
             User.filter,
             name="Dylan"
         )
+
+    def test_11_compound_index(self):
+        """Test compound index."""
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class Customer(DataModel):
+            table = "customers"
+            first_name = fields.StringField(length=32)
+            last_name = fields.StringField(length=32)
+            address = fields.StringField(length=256)
+
+        Customer.init_table()
+        Customer.create_index("name", True, "first_name", "last_name")
 
 
 # Entry Point

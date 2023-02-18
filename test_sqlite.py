@@ -528,6 +528,20 @@ class TestSQLiteDBDriver(unittest.TestCase):
             name="Dylan"
         )
 
+    def test_11_compound_index(self):
+        """Test compound index."""
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class Customer(DataModel):
+            table = "customers"
+            first_name = fields.StringField(length=32)
+            last_name = fields.StringField(length=32)
+            address = fields.StringField(length=256)
+
+        Customer.init_table()
+        Customer.create_index("name", True, "first_name", "last_name")
+
 
 # Entry Point
 # ===========

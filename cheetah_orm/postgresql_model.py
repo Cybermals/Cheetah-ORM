@@ -66,6 +66,19 @@ class DataModel(object):
             cls._cursor.execute(sql)
 
     @classmethod
+    def create_index(cls, name, unique=False, *args):
+        """Add an index to this data model."""
+        indexes = ", ".join(args)
+
+        if unique:
+            sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
+
+        else:
+            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
+
+        cls._cursor.execute(sql)
+
+    @classmethod
     def drop_table(cls):
         """Drop the table for this data model."""
         sql = f"DROP TABLE {cls.table};"
