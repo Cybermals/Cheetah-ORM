@@ -17,6 +17,9 @@ class DataModel(object):
     @classmethod
     def init_table(cls):
         """Initialize the table for this data model."""
+        # Create migration metadata table if it doesn't exist
+        cls._cursor.execute("CREATE TABLE IF NOT EXISTS migration_metadata(id INTEGER PRIMARY KEY, type VARCHAR(16), name VARCHAR(32), sql VARCHAR(1024));")
+
         # Generate table SQL
         sql = f"CREATE TABLE IF NOT EXISTS {cls.table}(id INTEGER PRIMARY KEY, "
         indexes = []
@@ -55,8 +58,38 @@ class DataModel(object):
         sql = sql[:-2] + ");"
         # print(sql)
 
+        # Check if this table needs to be migrated
+        cls._cursor.execute("SELECT sql FROM migration_metadata WHERE type = 'TABLE' AND name = ?;", 
+            (cls.table,))
+        row = cls._cursor.fetchone()
+
+        if row and row[0] != sql:
+            # Disable foreign keys and rename old table
+            cls._cursor.execute("PRAGMA foreign_keys = OFF;")
+            cls._cursor.execute(f"ALTER TABLE {cls.table} RENAME TO {cls.table}_old;")
+
         # Create table
         cls._cursor.execute(sql)
+
+        # Migrate old data?
+        if row and row[0] != sql:
+            # Copy the old data into the new table and drop the old table
+            columns = ", ".join([name for name, field in cls._get_fields() if name in row[0] and name in sql])
+            cls._cursor.execute(f"INSERT INTO {cls.table}({columns}) SELECT {columns} FROM {cls.table}_old;")
+            cls._cursor.execute(f"DROP TABLE {cls.table}_old;")
+
+            # Update table metadata
+            cls._cursor.execute("UPDATE migration_metadata SET sql = ? WHERE name = ? AND type = 'TABLE';",
+                (sql, cls.table))
+            cls._cursor.execute("COMMIT;")
+
+            # Enable foreign keys
+            cls._cursor.execute("PRAGMA foreign_keys = ON;")
+
+        else:
+            # Add table metadata
+            cls._cursor.execute("INSERT INTO migration_metadata(type, name, sql) VALUES (?, ?, ?);", ("TABLE", cls.table, sql))
+            cls._cursor.execute("COMMIT;")
 
         # Create each index
         for index in indexes:
@@ -80,9 +113,9 @@ class DataModel(object):
     @classmethod
     def drop_table(cls):
         """Drop the table for this data model."""
-        sql = f"DROP TABLE {cls.table};"
-        # print(sql)
-        cls._cursor.execute(sql)
+        cls._cursor.execute(f"DROP TABLE {cls.table};")
+        cls._cursor.execute(f"DELETE FROM migration_metadata WHERE name = ? AND type = 'TABLE';",
+            (cls.table,))
 
     @classmethod
     def filter(cls, order_by="id", descending=False, offset=0, limit=0, **kwargs):
