@@ -25,7 +25,7 @@ class TestMySQLDBDriver(unittest.TestCase):
         cur.execute("DROP TABLE IF EXISTS posts;")
         cur.execute("DROP TABLE IF EXISTS users;")
 
-    def test_1_model(self):
+    def test_01_model(self):
         """Test MySQL/MariaDB data model."""
         from cheetah_orm.db import DataModel, fields
 
@@ -57,7 +57,7 @@ class TestMySQLDBDriver(unittest.TestCase):
         self.assertNotEqual(n._insert_sql, mn._insert_sql)
         self.assertEqual(DataModel._insert_sql, None)
 
-    def test_2_fields(self):
+    def test_02_fields(self):
         """Test MySQL/MariaDB fields."""
         from datetime import datetime
         import os
@@ -175,7 +175,7 @@ class TestMySQLDBDriver(unittest.TestCase):
         self.assertEqual(p4.joined, dt4)
         self.assertEqual(p4.player_id, 3248978531364965324)
 
-    def test_3_field_modification(self):
+    def test_03_field_modification(self):
         """Test MySQL/MariaDB field modification."""
         from cheetah_orm.db import DataModel, fields
 
@@ -203,7 +203,7 @@ class TestMySQLDBDriver(unittest.TestCase):
         self.assertEqual(billy.age, 10)
         self.assertEqual(susan.age, 20)
 
-    def test_4_filtering(self):
+    def test_04_filtering(self):
         """Test MySQL/MariaDB model filtering."""
         from cheetah_orm.db import DataModel, fields
 
@@ -334,7 +334,7 @@ class TestMySQLDBDriver(unittest.TestCase):
 
         self.assertEqual(len(players), 2)
 
-    def test_5_indexes(self):
+    def test_05_indexes(self):
         """Test MySQL/MariaDB indexes."""
         from datetime import datetime
         from mysql.connector import IntegrityError
@@ -380,7 +380,7 @@ class TestMySQLDBDriver(unittest.TestCase):
             ).save
         )
 
-    def test_6_foreign_keys(self):
+    def test_06_foreign_keys(self):
         """Test MySQL/MariaDB foreign keys."""
         from datetime import datetime
 
@@ -441,7 +441,7 @@ class TestMySQLDBDriver(unittest.TestCase):
         posts = Post.filter()
         self.assertTrue(len(users) == 2 and len(posts) == 2)
 
-    def test_7_drop_table(self):
+    def test_07_drop_table(self):
         """Test dropping a MySQL/MariaDB table."""
         from mysql.connector import ProgrammingError
 
@@ -466,7 +466,7 @@ class TestMySQLDBDriver(unittest.TestCase):
             Player.filter
         )
 
-    def test_8_string_field_default(self):
+    def test_08_string_field_default(self):
         """Test string field default value."""
         from cheetah_orm.db import DataModel, fields
 
@@ -477,7 +477,7 @@ class TestMySQLDBDriver(unittest.TestCase):
 
         Word.init_table()
 
-    def test_9_filter_by_foreign_key(self):
+    def test_09_filter_by_foreign_key(self):
         """Test filtering by a foreign key."""
         from datetime import datetime
 
@@ -547,6 +547,73 @@ class TestMySQLDBDriver(unittest.TestCase):
 
         Customer.init_table()
         Customer.create_index("name", True, "first_name", "last_name")
+
+        # Create some records
+        Customer(
+            first_name="John",
+            last_name="Doe",
+            address="1234 Somewhere"
+        ).save(commit=False)
+        Customer(
+            first_name="Jane",
+            last_name="Doe",
+            address="5678 Somewhere Else"
+        ).save()
+
+    def test_12_migrations(self):
+        """Test data migrations."""
+        from datetime import datetime
+
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class Customer(DataModel):
+            table = "customers"
+            first_name = fields.StringField(length=32)
+            last_name = fields.StringField(length=32)
+            address = fields.StringField(length=256)
+            phone_num = fields.StringField(length=16)
+
+        Customer.init_table()
+        Customer.create_index("name", True, "first_name", "last_name")
+
+        # Verify data integrity
+        customers = Customer.filter()
+
+        self.assertEqual(customers[0].first_name, "John")
+        self.assertEqual(customers[0].last_name, "Doe")
+        self.assertEqual(customers[0].address, "1234 Somewhere")
+        self.assertEqual(customers[0].phone_num, None)
+
+        self.assertEqual(customers[1].first_name, "Jane")
+        self.assertEqual(customers[1].last_name, "Doe")
+        self.assertEqual(customers[1].address, "5678 Somewhere Else")
+        self.assertEqual(customers[1].phone_num, None)
+
+        # Create data models
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(
+                length=32, unique=True, not_null=True, key=True)
+            pswd = fields.PswdField(length=128, not_null=True)
+            email = fields.StringField(length=256, unique=True, not_null=True)
+            question = fields.StringField(length=256, not_null=True, default="")
+            answer = fields.StringField(length=256, not_null=True, default="")
+
+        User.init_table()
+
+        # class Post(DataModel):
+        #     table = "posts"
+        #     author = fields.IntField(foreign_key=User)
+        #     date = fields.DateTimeField(not_null=True)
+        #     token = fields.StringField(length=128, unique=True, not_null=True, default="")
+        #     content = fields.StringField(length=65535, not_null=True)
+
+        # Post.init_table()
+
+        # # Test foreign keys after migration
+        # dylan = User.filter(name_eq="Dylan")[0]
+        # self.assertEqual(len(dylan.Posts), 2)
 
 
 # Entry Point

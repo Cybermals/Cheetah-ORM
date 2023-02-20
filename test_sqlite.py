@@ -593,7 +593,6 @@ class TestSQLiteDBDriver(unittest.TestCase):
             email = fields.StringField(length=256, unique=True, not_null=True)
             question = fields.StringField(length=256, not_null=True, default="")
             answer = fields.StringField(length=256, not_null=True, default="")
-            ban = fields.DateTimeField(default=datetime.now())
 
         User.init_table()
 
@@ -601,6 +600,7 @@ class TestSQLiteDBDriver(unittest.TestCase):
             table = "posts"
             author = fields.IntField(foreign_key=User)
             date = fields.DateTimeField(not_null=True)
+            token = fields.StringField(length=128, unique=True, not_null=True, default="")
             content = fields.StringField(length=65535, not_null=True)
 
         Post.init_table()
