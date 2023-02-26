@@ -24,6 +24,9 @@ additonal packages.
   use
 * rich filtering API supports equality, inequality, less than, greater than, less than or equal
   to, greater than or equal to, logical or, and logical and as well as sorting and limits
+* support for compound keys
+* migration support that utilizes very little storage for migration data and is optimized for each
+  database system
 
 
 # Known Bugs
