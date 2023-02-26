@@ -155,9 +155,10 @@ class DataModel(object):
     @classmethod
     def drop_table(cls):
         """Drop the table for this data model."""
-        sql = f"DROP TABLE {cls.table};"
-        # print(sql)
-        cls._cursor.execute(sql)
+        cls._cursor.execute(f"DROP TABLE {cls.table};")
+        cls._cursor.execute("DELETE FROM migration_metadata WHERE name = %s AND type = 'TABLE';",
+            (cls.table,))
+        cls._cursor.execute("COMMIT;")
 
     @classmethod
     def filter(cls, order_by="id", descending=False, offset=0, limit=0, **kwargs):
