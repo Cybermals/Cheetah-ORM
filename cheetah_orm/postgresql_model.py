@@ -69,8 +69,8 @@ class DataModel(object):
         row = cls._cursor.fetchone()
 
         if row is not None and row[0] != sql:
-            # Disable foreign keys
-            cls._cursor.execute(f"ALTER TABLE {cls.table} DISABLE TRIGGER ALL;")
+            # Disable foreign keys (only works as superuser)
+            # cls._cursor.execute(f"ALTER TABLE {cls.table} DISABLE TRIGGER ALL;")
 
             # Check each column and modify the table structure as needed
             for name, field in fields:
@@ -79,14 +79,14 @@ class DataModel(object):
                     continue
 
                 # Lookup column metadata in current table
-                cls._cursor.execute("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = %s;", (name,))
+                cls._cursor.execute("SELECT data_type FROM information_schema.columns WHERE table_name = %s AND column_name = %s;", (cls.table, name))
                 row = cls._cursor.fetchone()
                 cls._cursor.fetchall()
 
                 if row:
                     # Modify column type if needed
-                    if not row[1].startswith(field._type.lower().replace("varchar", "character varying")):
-                        cls._cursor.execute(f"ALTER TABLE {cls.table} MODIFY {name} {field._type};")
+                    if not row[0].replace("text", "varchar").replace("character varying", "varchar").startswith(field._type.lower()):
+                        cls._cursor.execute(f"ALTER TABLE {cls.table} ALTER {name} SET DATA TYPE {field._type};")
 
                 else:
                     # Generate SQL to add new column
@@ -114,7 +114,7 @@ class DataModel(object):
 
             # Remove columns that aren't present in the new data model
             columns = [name for name, field in fields]
-            cls._cursor.execute(f"SHOW COLUMNS FROM {cls.table};")
+            cls._cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = %s;", (cls.table,))
 
             for row in cls._cursor.fetchall():
                 if row[0] != "id" and row[0] not in columns:
@@ -125,8 +125,8 @@ class DataModel(object):
                 (sql, cls.table))
             cls._cursor.execute("COMMIT;")
 
-            # Enable foreign keys
-            cls._cursor.execute(f"ALTER TABLE {cls.table} ENABLE TRIGGER ALL;")
+            # Enable foreign keys (only works as superuser)
+            # cls._cursor.execute(f"ALTER TABLE {cls.table} ENABLE TRIGGER ALL;")
 
         elif row is None:
             # Add table metadata
