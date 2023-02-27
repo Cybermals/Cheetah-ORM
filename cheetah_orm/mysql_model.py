@@ -84,8 +84,23 @@ class DataModel(object):
 
                 if row:
                     # Modify column type if needed
-                    if not row[1].startswith(field._type):
-                        cls._cursor.execute(f"ALTER TABLE {cls.table} MODIFY {name} {field._type};")
+                    if not row[1].replace("text", "varchar").startswith(field._type.lower()):
+                        sql = f"ALTER TABLE {cls.table} MODIFY {name} {field._type}"
+
+                        if field._default is not None:
+                            if field._type in ["TEXT", "BLOB", "DATETIME"] or field._type.startswith("VARCHAR"):
+                                sql += f" DEFAULT '{field._default}'"
+
+                            else:
+                                sql += f" DEFAULT {field._default}"
+
+                        if field._not_null:
+                            sql += " NOT NULL"
+
+                        sql += ";"
+
+                        # Modify column
+                        cls._cursor.execute(sql)
 
                 else:
                     # Generate SQL to add new column
@@ -108,8 +123,10 @@ class DataModel(object):
                     if field._foreign_key is not None:
                         sql += f" CONSTRAINT {cls.table}_{name} REFERENCES {field._foreign_key.table}(id) ON DELETE CASCADE"
 
+                    sql += ";"
+                    
                     # Add new column
-                    cls._cursor.execute(f"ALTER TABLE {cls.table} ADD {name} {field._type}")
+                    cls._cursor.execute(sql)
 
             # Remove columns that aren't present in the new data model
             columns = [name for name, field in fields]

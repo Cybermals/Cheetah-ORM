@@ -109,8 +109,10 @@ class DataModel(object):
                     if field._foreign_key is not None:
                         sql += f" CONSTRAINT {cls.table}_{name} REFERENCES {field._foreign_key.table}(id) ON DELETE CASCADE"
 
+                    sql += ";"
+
                     # Add new column
-                    cls._cursor.execute(f"ALTER TABLE {cls.table} ADD {name} {field._type}")
+                    cls._cursor.execute(sql)
 
             # Remove columns that aren't present in the new data model
             columns = [name for name, field in fields]

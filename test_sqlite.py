@@ -609,6 +609,37 @@ class TestSQLiteDBDriver(unittest.TestCase):
         dylan = User.filter(name_eq="Dylan")[0]
         self.assertEqual(len(dylan.Posts), 2)
 
+    def test_13_rename_field(self):
+        """Test field renaming."""
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class User(DataModel):
+            table = "users"
+            name = fields.StringField(
+                length=32, unique=True, not_null=True, key=True)
+            pswd = fields.PswdField(length=128, not_null=True)
+            email = fields.StringField(length=256, unique=True, not_null=True)
+            question = fields.StringField(length=256, not_null=True, default="")
+            answer = fields.StringField(length=256, not_null=True, default="")
+
+        User.init_table()
+
+        class Post(DataModel):
+            table = "posts"
+            author = fields.IntField(foreign_key=User)
+            date = fields.DateTimeField(not_null=True)
+            token = fields.StringField(length=128, unique=True, not_null=True, default="")
+            message = fields.StringField(length=65535, not_null=True, default="")
+
+        Post.init_table()
+
+        # Verify data integrity
+        posts = Post.filter()
+
+        for post in posts:
+            self.assertNotEqual(post.message, "")
+
 
 # Entry Point
 # ===========
