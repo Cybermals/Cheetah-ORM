@@ -49,9 +49,9 @@ class TestSQLiteDBDriver(unittest.TestCase):
 
         # Each data model class should have its own unique SQL code
         self.assertEqual(
-            n._insert_sql, "INSERT INTO numbers(num1, num2) VALUES (?, ?);")
+            n._insert_sql, "INSERT INTO numbers(`num1`, `num2`) VALUES (?, ?);")
         self.assertEqual(
-            mn._insert_sql, "INSERT INTO more_numbers(num3, num4, num5) VALUES (?, ?, ?);")
+            mn._insert_sql, "INSERT INTO more_numbers(`num3`, `num4`, `num5`) VALUES (?, ?, ?);")
         self.assertNotEqual(n._insert_sql, mn._insert_sql)
         self.assertEqual(DataModel._insert_sql, None)
 
@@ -639,6 +639,17 @@ class TestSQLiteDBDriver(unittest.TestCase):
 
         for post in posts:
             self.assertNotEqual(post.message, "")
+
+    def test_14_invalid_column_name(self):
+        """Test invalid column names."""
+        from cheetah_orm.db import DataModel, fields
+
+        # Create data models
+        class InvalidData(DataModel):
+            table = "invalid_data"
+            group = fields.IntField()
+
+        InvalidData.init_table()
 
 
 # Entry Point

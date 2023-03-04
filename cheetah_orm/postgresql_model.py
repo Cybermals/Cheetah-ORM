@@ -31,7 +31,7 @@ class DataModel(object):
                 continue
 
             # Add next field
-            sql += f"{name} {field._type}"
+            sql += f"\"{name}\" {field._type}"
 
             if field._default is not None:
                 if (field._type in ["TEXT", "BYTEA", "TIMESTAMP WITHOUT TIME ZONE"] or 
@@ -86,11 +86,11 @@ class DataModel(object):
                 if row:
                     # Modify column type if needed
                     if not row[0].replace("text", "varchar").replace("character varying", "varchar").startswith(field._type.lower()):
-                        cls._cursor.execute(f"ALTER TABLE {cls.table} ALTER {name} SET DATA TYPE {field._type};")
+                        cls._cursor.execute(f"ALTER TABLE {cls.table} ALTER \"{name}\" SET DATA TYPE {field._type};")
 
                 else:
                     # Generate SQL to add new column
-                    sql = f"ALTER TABLE {cls.table} ADD {name} {field._type}"
+                    sql = f"ALTER TABLE {cls.table} ADD \"{name}\" {field._type}"
 
                     if field._default is not None:
                         if field._type in ["TEXT", "BLOB", "DATETIME"] or field._type.startswith("VARCHAR"):
@@ -120,7 +120,7 @@ class DataModel(object):
 
             for row in cls._cursor.fetchall():
                 if row[0] != "id" and row[0] not in columns:
-                    cls._cursor.execute(f"ALTER TABLE {cls.table} DROP {row[0]};")
+                    cls._cursor.execute(f"ALTER TABLE {cls.table} DROP \"{row[0]}\";")
 
             # Update table metadata
             cls._cursor.execute("UPDATE migration_metadata SET sql = %s WHERE name = %s AND type = 'TABLE';",
@@ -137,14 +137,14 @@ class DataModel(object):
 
         # Create each index
         for index in indexes:
-            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}({index});"
+            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}(\"{index}\");"
             # print(sql)
             cls._cursor.execute(sql)
 
     @classmethod
     def create_index(cls, name, unique=False, *args):
         """Add an index to this data model."""
-        indexes = ", ".join(args)
+        indexes = ", ".join([f"\"{arg}\"" for arg in args])
 
         if unique:
             sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
@@ -192,27 +192,27 @@ class DataModel(object):
 
                 # Equal?
                 if name.endswith("_eq"):
-                    sql += f" {name[:-3]} = %s"
+                    sql += f" \"{name[:-3]}\" = %s"
 
                 # Not equal?
                 elif name.endswith("_neq"):
-                    sql += f" {name[:-4]} != %s"
+                    sql += f" \"{name[:-4]}\" != %s"
 
                 # Less than?
                 elif name.endswith("_lt"):
-                    sql += f" {name[:-3]} < %s"
+                    sql += f" \"{name[:-3]}\" < %s"
 
                 # Greater than?
                 elif name.endswith("_gt"):
-                    sql += f" {name[:-3]} > %s"
+                    sql += f" \"{name[:-3]}\" > %s"
 
                 # Less than or equal to?
                 elif name.endswith("_lte"):
-                    sql += f" {name[:-4]} <= %s"
+                    sql += f" \"{name[:-4]}\" <= %s"
 
                 # Greater than or equal to?
                 elif name.endswith("_gte"):
-                    sql += f" {name[:-4]} >= %s"
+                    sql += f" \"{name[:-4]}\" >= %s"
 
                 # No comparison operator?
                 else:
@@ -259,7 +259,7 @@ class DataModel(object):
                     continue
 
                 # Add next field
-                head += f"{name}, "
+                head += f"\"{name}\", "
                 tail += "%s, "
 
             self.__class__._insert_sql = head[:-

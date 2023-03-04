@@ -30,7 +30,7 @@ class DataModel(object):
                 continue
 
             # Add next field
-            sql += f"{name} {field._type}"
+            sql += f"`{name}` {field._type}"
 
             if field._default is not None:
                 if field._type in ["BLOB", "DATETIME"] or field._type.startswith("VARCHAR"):
@@ -74,7 +74,7 @@ class DataModel(object):
         # Migrate old data?
         if row is not None and row[0] != sql:
             # Copy the old data into the new table
-            columns = ", ".join([name for name, field in cls._get_fields() if name in row[0] and name in sql])
+            columns = ", ".join([f"`{name}`" for name, field in cls._get_fields() if name in row[0] and name in sql])
             cls._cursor.execute(f"INSERT INTO {cls.table}({columns}) SELECT {columns} FROM {cls.table}_old;")
 
             # Update table metadata
@@ -96,14 +96,14 @@ class DataModel(object):
 
         # Create each index
         for index in indexes:
-            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}({index});"
+            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}(`{index}`);"
             # print(sql)
             cls._cursor.execute(sql)
 
     @classmethod
     def create_index(cls, name, unique=False, *args):
         """Add an index to this data model."""
-        indexes = ", ".join(args)
+        indexes = ", ".join([f"`{arg}`" for arg in args])
 
         if unique:
             sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
@@ -151,27 +151,27 @@ class DataModel(object):
 
                 # Equal?
                 if name.endswith("_eq"):
-                    sql += f" {name[:-3]} = ?"
+                    sql += f" `{name[:-3]}` = ?"
 
                 # Not equal?
                 elif name.endswith("_neq"):
-                    sql += f" {name[:-4]} != ?"
+                    sql += f" `{name[:-4]}` != ?"
 
                 # Less than?
                 elif name.endswith("_lt"):
-                    sql += f" {name[:-3]} < ?"
+                    sql += f" `{name[:-3]}` < ?"
 
                 # Greater than?
                 elif name.endswith("_gt"):
-                    sql += f" {name[:-3]} > ?"
+                    sql += f" `{name[:-3]}` > ?"
 
                 # Less than or equal to?
                 elif name.endswith("_lte"):
-                    sql += f" {name[:-4]} <= ?"
+                    sql += f" `{name[:-4]}` <= ?"
 
                 # Greater than or equal to?
                 elif name.endswith("_gte"):
-                    sql += f" {name[:-4]} >= ?"
+                    sql += f" `{name[:-4]}` >= ?"
 
                 # No comparison operator?
                 else:
@@ -216,7 +216,7 @@ class DataModel(object):
                     continue
 
                 # Add next field
-                head += f"{name}, "
+                head += f"`{name}`, "
                 tail += "?, "
 
             self.__class__._insert_sql = head[:-2] + tail[:-2] + ");"
