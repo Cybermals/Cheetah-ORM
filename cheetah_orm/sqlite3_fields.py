@@ -24,8 +24,8 @@ class IntField(Field):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
         # Add foreign key backreference?
         if self._foreign_key is not None:
@@ -64,8 +64,8 @@ class FloatField(Field):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
 
 class StringField(Field):
@@ -83,8 +83,8 @@ class StringField(Field):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
 
 class BinaryField(Field):
@@ -96,8 +96,8 @@ class BinaryField(Field):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
 
 class DateTimeField(Field):
@@ -109,8 +109,8 @@ class DateTimeField(Field):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
     def __get__(self, instance, owner=None):
         """Get the value of this field."""
@@ -128,8 +128,8 @@ class PswdField(StringField):
         super().__set_name__(owner, name)
 
         # Generate SQL statements
-        self._get = f"SELECT `{name}` FROM {owner.table} WHERE id = ?;"
-        self._set = f"UPDATE {owner.table} SET `{name}` = ? WHERE id = ?;"
+        self._get = f"SELECT `{name}` FROM `{owner.table}` WHERE id = ?;"
+        self._set = f"UPDATE `{owner.table}` SET `{name}` = ? WHERE id = ?;"
 
     def __get__(self, instance, owner=None):
         """Get the value of this field."""

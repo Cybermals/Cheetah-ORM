@@ -21,7 +21,7 @@ class DataModel(object):
         cls._cursor.execute("CREATE TABLE IF NOT EXISTS migration_metadata(id INTEGER PRIMARY KEY, type VARCHAR(16), name VARCHAR(32), sql VARCHAR(1024));")
 
         # Generate table SQL
-        sql = f"CREATE TABLE IF NOT EXISTS {cls.table}(id INTEGER PRIMARY KEY, "
+        sql = f"CREATE TABLE IF NOT EXISTS `{cls.table}`(id INTEGER PRIMARY KEY, "
         indexes = []
 
         for name, field in cls._get_fields():
@@ -51,7 +51,7 @@ class DataModel(object):
 
             # Create foreign key?
             if field._foreign_key is not None:
-                sql += f" CONSTRAINT {cls.table}_{name} REFERENCES {field._foreign_key.table}(id) ON DELETE CASCADE"
+                sql += f" CONSTRAINT `{cls.table}_{name}` REFERENCES `{field._foreign_key.table}`(id) ON DELETE CASCADE"
 
             sql += ", "
 
@@ -66,7 +66,7 @@ class DataModel(object):
         if row and row[0] != sql:
             # Disable foreign keys and rename old table
             cls._cursor.execute("PRAGMA foreign_keys = OFF;")
-            cls._cursor.execute(f"ALTER TABLE {cls.table} RENAME TO {cls.table}_old;")
+            cls._cursor.execute(f"ALTER TABLE `{cls.table}` RENAME TO `{cls.table}_old`;")
 
         # Create table
         cls._cursor.execute(sql)
@@ -75,7 +75,7 @@ class DataModel(object):
         if row is not None and row[0] != sql:
             # Copy the old data into the new table
             columns = ", ".join([f"`{name}`" for name, field in cls._get_fields() if name in row[0] and name in sql])
-            cls._cursor.execute(f"INSERT INTO {cls.table}({columns}) SELECT {columns} FROM {cls.table}_old;")
+            cls._cursor.execute(f"INSERT INTO `{cls.table}`({columns}) SELECT {columns} FROM `{cls.table}_old`;")
 
             # Update table metadata
             cls._cursor.execute("UPDATE migration_metadata SET sql = ? WHERE name = ? AND type = 'TABLE';",
@@ -83,7 +83,7 @@ class DataModel(object):
             cls._cursor.execute("COMMIT;")
 
             # Drop the old table
-            cls._cursor.execute(f"DROP TABLE {cls.table}_old;")
+            cls._cursor.execute(f"DROP TABLE `{cls.table}_old`;")
 
             # Enable foreign keys
             cls._cursor.execute("PRAGMA foreign_keys = ON;")
@@ -96,7 +96,7 @@ class DataModel(object):
 
         # Create each index
         for index in indexes:
-            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{index} ON {cls.table}(`{index}`);"
+            sql = f"CREATE INDEX IF NOT EXISTS `{cls.table}_{index}` ON `{cls.table}`(`{index}`);"
             # print(sql)
             cls._cursor.execute(sql)
 
@@ -106,17 +106,17 @@ class DataModel(object):
         indexes = ", ".join([f"`{arg}`" for arg in args])
 
         if unique:
-            sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
+            sql = f"CREATE UNIQUE INDEX IF NOT EXISTS `{cls.table}_{name}` ON `{cls.table}`({indexes})"
 
         else:
-            sql = f"CREATE INDEX IF NOT EXISTS {cls.table}_{name} ON {cls.table}({indexes})"
+            sql = f"CREATE INDEX IF NOT EXISTS `{cls.table}_{name}` ON `{cls.table}`({indexes})"
 
         cls._cursor.execute(sql)
 
     @classmethod
     def drop_table(cls):
         """Drop the table for this data model."""
-        cls._cursor.execute(f"DROP TABLE {cls.table};")
+        cls._cursor.execute(f"DROP TABLE `{cls.table}`;")
         cls._cursor.execute(f"DELETE FROM migration_metadata WHERE name = ? AND type = 'TABLE';",
             (cls.table,))
         cls._cursor.execute("COMMIT;")
@@ -125,7 +125,7 @@ class DataModel(object):
     def filter(cls, order_by="id", descending=False, offset=0, limit=0, **kwargs):
         """Fetch all models which fit the given criteria."""
         # Generate filter SQL
-        sql = f"SELECT id FROM {cls.table}"
+        sql = f"SELECT id FROM `{cls.table}`"
         order = f" ORDER BY {order_by}" + (" DESC" if descending else "")
         limit = (f" LIMIT {limit} OFFSET {offset};" if limit > 0 else ";")
 
@@ -207,7 +207,7 @@ class DataModel(object):
 
         # Generate insert row SQL?
         if self._insert_sql is None:
-            head = f"INSERT INTO {self.table}("
+            head = f"INSERT INTO `{self.table}`("
             tail = ") VALUES ("
 
             for name, field in self._get_fields():
@@ -244,7 +244,7 @@ class DataModel(object):
 
     def delete(self, commit=True):
         """Delete this data model from the database."""
-        sql = f"DELETE FROM {self.table} WHERE id = ?;"
+        sql = f"DELETE FROM `{self.table}` WHERE id = ?;"
         params = (self.id,)
         self._cursor.execute(sql, params)
         # print(sql)
