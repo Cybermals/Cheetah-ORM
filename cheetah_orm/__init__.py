@@ -1,12 +1,6 @@
-"""Cheetah ORM
+"""A lightweight and high-performance object-relational mapper for Python."""
 
-Cheetah ORM is a lightweight and high-performance object relational mapper writtn in pure Python. 
-It supports multiple database backends including sqlite3, MySQL/MariaDB, and PostgreSQL.
-"""
-
-# Constants
-# =========
-__author__ = "Cybermals"
-__copyright__ = "Copyright (c) 2022 by Cybermals"
-__license__ = "MIT"
-__version__ = "1.0.0b13"
+__author__    = "Cybermals"
+__copyright__ = "Copyright (c) 2023 by Cybermals"
+__license__   = "MIT"
+__version__   = "2.0.0"
