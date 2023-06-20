@@ -1,4 +1,4 @@
-"""Cheetah ORM - SQLite Mapper Unit Tests"""
+"""Cheetah ORM - MySQL/MariaDB Mapper Unit Tests"""
 
 from datetime import datetime
 import unittest
@@ -44,14 +44,14 @@ class Post(DataModel):
 
 
 class TestMySQLMapper(unittest.TestCase):
-    """SQLite Mapper Tests"""
+    """MySQL/MariaDB Mapper Tests"""
     @classmethod
     def setUpClass(cls):
         """Cleanup data from last test."""
         mapper = MySQLMapper()
         mapper.connect(host="localhost", user="tester", passwd="test", database="testing")
-        mapper._cur.execute("DROP TABLE IF EXISTS posts;")
-        mapper._cur.execute("DROP TABLE IF EXISTS users;")
+        mapper._cur.execute("DROP TABLE IF EXISTS `posts`;")
+        mapper._cur.execute("DROP TABLE IF EXISTS `users`;")
         mapper.disconnect()
 
     def test_1_connection(self):
@@ -74,14 +74,14 @@ class TestMySQLMapper(unittest.TestCase):
         mapper.init_model(Post)
 
         # Check SQL cache
-        self.assertEqual(mapper._cache[User]["insert"], "INSERT INTO users(name,pswd,email,question,answer,joined,ban) VALUES (%s,%s,%s,%s,%s,%s,%s);")
-        self.assertEqual(mapper._cache[User]["update"], "UPDATE users SET name=%s,pswd=%s,email=%s,question=%s,answer=%s,joined=%s,ban=%s WHERE id=%s;")
-        self.assertEqual(mapper._cache[User]["delete"], "DELETE FROM users WHERE id=%s;")
-        self.assertEqual(mapper._cache[User]["select"], "SELECT name,pswd,email,question,answer,joined,ban FROM users")
-        self.assertEqual(mapper._cache[Post]["insert"], "INSERT INTO posts(user,date,content) VALUES (%s,%s,%s);")
-        self.assertEqual(mapper._cache[Post]["update"], "UPDATE posts SET user=%s,date=%s,content=%s WHERE id=%s;")
-        self.assertEqual(mapper._cache[Post]["delete"], "DELETE FROM posts WHERE id=%s;")
-        self.assertEqual(mapper._cache[Post]["select"], "SELECT user,date,content FROM posts")
+        self.assertEqual(mapper._cache[User]["insert"], "INSERT INTO `users`(`name`,`pswd`,`email`,`question`,`answer`,`joined`,`ban`) VALUES (%s,%s,%s,%s,%s,%s,%s);")
+        self.assertEqual(mapper._cache[User]["update"], "UPDATE `users` SET `name`=%s,`pswd`=%s,`email`=%s,`question`=%s,`answer`=%s,`joined`=%s,`ban`=%s WHERE `id`=%s;")
+        self.assertEqual(mapper._cache[User]["delete"], "DELETE FROM `users` WHERE `id`=%s;")
+        self.assertEqual(mapper._cache[User]["select"], "SELECT `name`,`pswd`,`email`,`question`,`answer`,`joined`,`ban` FROM `users`")
+        self.assertEqual(mapper._cache[Post]["insert"], "INSERT INTO `posts`(`user`,`date`,`content`) VALUES (%s,%s,%s);")
+        self.assertEqual(mapper._cache[Post]["update"], "UPDATE `posts` SET `user`=%s,`date`=%s,`content`=%s WHERE `id`=%s;")
+        self.assertEqual(mapper._cache[Post]["delete"], "DELETE FROM `posts` WHERE `id`=%s;")
+        self.assertEqual(mapper._cache[Post]["select"], "SELECT `user`,`date`,`content` FROM `posts`")
 
         # Disconnect from the database
         mapper.disconnect()

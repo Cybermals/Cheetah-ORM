@@ -1,4 +1,4 @@
-"""Cheetah ORM - SQLite Mapper Unit Tests"""
+"""Cheetah ORM - PostgreSQL Mapper Unit Tests"""
 
 from datetime import datetime
 import unittest
@@ -14,7 +14,7 @@ from cheetah_orm.fields import (
     StringField
 )
 from cheetah_orm.indexes import ForeignKey, Index, UniqueIndex
-from cheetah_orm.mappers import SQLiteMapper
+from cheetah_orm.mappers import PostgreSQLMapper
 from cheetah_orm.model import DataModel
 
 
@@ -43,22 +43,23 @@ class Post(DataModel):
     date_idx   = Index("date")
 
 
-class TestSQLiteMapper(unittest.TestCase):
-    """SQLite Mapper Tests"""
+class TestPostgreSQLMapper(unittest.TestCase):
+    """PostgreSQL Mapper Tests"""
     @classmethod
     def setUpClass(cls):
         """Cleanup data from last test."""
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
-        mapper._cur.execute("DROP TABLE IF EXISTS `posts`;")
-        mapper._cur.execute("DROP TABLE IF EXISTS `users`;")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
+        mapper._cur.execute('DROP TABLE IF EXISTS "posts";')
+        mapper._cur.execute('DROP TABLE IF EXISTS "users";')
+        mapper.commit()
         mapper.disconnect()
 
     def test_1_connection(self):
         """Test database connection."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Disconnect from the database
         mapper.disconnect()
@@ -66,22 +67,22 @@ class TestSQLiteMapper(unittest.TestCase):
     def test_2_init_model(self):
         """Test data model initialization."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Initialize data models
         mapper.init_model(User)
         mapper.init_model(Post)
 
         # Check SQL cache
-        self.assertEqual(mapper._cache[User]["insert"], "INSERT INTO `users`(`name`,`pswd`,`email`,`question`,`answer`,`joined`,`ban`) VALUES (?,?,?,?,?,?,?);")
-        self.assertEqual(mapper._cache[User]["update"], "UPDATE `users` SET `name`=?,`pswd`=?,`email`=?,`question`=?,`answer`=?,`joined`=?,`ban`=? WHERE `id`=?;")
-        self.assertEqual(mapper._cache[User]["delete"], "DELETE FROM `users` WHERE `id`=?;")
-        self.assertEqual(mapper._cache[User]["select"], "SELECT `name`,`pswd`,`email`,`question`,`answer`,`joined`,`ban` FROM `users`")
-        self.assertEqual(mapper._cache[Post]["insert"], "INSERT INTO `posts`(`user`,`date`,`content`) VALUES (?,?,?);")
-        self.assertEqual(mapper._cache[Post]["update"], "UPDATE `posts` SET `user`=?,`date`=?,`content`=? WHERE `id`=?;")
-        self.assertEqual(mapper._cache[Post]["delete"], "DELETE FROM `posts` WHERE `id`=?;")
-        self.assertEqual(mapper._cache[Post]["select"], "SELECT `user`,`date`,`content` FROM `posts`")
+        self.assertEqual(mapper._cache[User]["insert"], 'INSERT INTO "users"("name","pswd","email","question","answer","joined","ban") VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING "id";')
+        self.assertEqual(mapper._cache[User]["update"], 'UPDATE "users" SET "name"=%s,"pswd"=%s,"email"=%s,"question"=%s,"answer"=%s,"joined"=%s,"ban"=%s WHERE "id"=%s;')
+        self.assertEqual(mapper._cache[User]["delete"], 'DELETE FROM "users" WHERE "id"=%s;')
+        self.assertEqual(mapper._cache[User]["select"], 'SELECT "name","pswd","email","question","answer","joined","ban" FROM "users"')
+        self.assertEqual(mapper._cache[Post]["insert"], 'INSERT INTO "posts"("user","date","content") VALUES (%s,%s,%s) RETURNING "id";')
+        self.assertEqual(mapper._cache[Post]["update"], 'UPDATE "posts" SET "user"=%s,"date"=%s,"content"=%s WHERE "id"=%s;')
+        self.assertEqual(mapper._cache[Post]["delete"], 'DELETE FROM "posts" WHERE "id"=%s;')
+        self.assertEqual(mapper._cache[Post]["select"], 'SELECT "user","date","content" FROM "posts"')
 
         # Disconnect from the database
         mapper.disconnect()
@@ -89,8 +90,8 @@ class TestSQLiteMapper(unittest.TestCase):
     def test_3_save_model(self):
         """Test data model saving."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Initialize data models
         mapper.init_model(User)
@@ -176,8 +177,8 @@ class TestSQLiteMapper(unittest.TestCase):
     def test_4_delete_model(self):
         """Test data model deletion."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Initialize data models
         mapper.init_model(User)
@@ -193,8 +194,8 @@ class TestSQLiteMapper(unittest.TestCase):
     def test_5_filter(self):
         """Test data model filtering."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Initialize data models
         mapper.init_model(User)
@@ -234,8 +235,8 @@ class TestSQLiteMapper(unittest.TestCase):
     def test_6_foreign_keys(self):
         """Test foreign keys."""
         # Establish a database connection
-        mapper = SQLiteMapper()
-        mapper.connect(database="test.db")
+        mapper = PostgreSQLMapper()
+        mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Initialize data models
         mapper.init_model(User)
