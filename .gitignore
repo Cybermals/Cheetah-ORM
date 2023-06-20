@@ -131,8 +131,9 @@ dmypy.json
 # pyjion dependencies
 dotnet/
 
-# Test database
+# Test databases
 test.db
+users.db
 
 # Environment files
 python311.bat
