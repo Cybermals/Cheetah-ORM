@@ -26,7 +26,7 @@ from collections import OrderedDict
 # =======
 class DataModel(object):
     """Base class for a data model."""
-    table       = None
+    table    = None
     _fields  = None
     _indexes = None
 
@@ -41,6 +41,14 @@ class DataModel(object):
         # Pass keyword args to the corresponding fields
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+    def __str__(self):
+        """Return the string representation of this data model."""
+        return f"{self.__class__.__name__}({self._data})"
+    
+    def __repr__(self):
+        """Return the string representation of this data model."""
+        return str(self)
 
     def _get_id(self):
         """Get the ID of this data model."""
