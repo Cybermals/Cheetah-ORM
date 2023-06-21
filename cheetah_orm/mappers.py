@@ -98,7 +98,7 @@ class SQLiteMapper(Mapper):
 
         # Generate select statement
         cols = ",".join([f"`{col[0]}`" for col in model._fields])
-        cache_entry["select"] = f"SELECT {cols} FROM `{model.table}`"
+        cache_entry["select"] = f"SELECT `id`,{cols} FROM `{model.table}`"
 
         # Add cache entry
         self._cache[model] = cache_entry
@@ -180,7 +180,7 @@ class SQLiteMapper(Mapper):
                 col += f" NOT NULL"
 
             # Add default value
-            if default:
+            if default is not None:
                 col += f" DEFAULT '{default}'"
 
             field_sql += f"{col},"
@@ -353,7 +353,7 @@ class MySQLMapper(Mapper):
 
         # Generate select statement
         cols = ",".join([f"`{col[0]}`" for col in model._fields])
-        cache_entry["select"] = f"SELECT {cols} FROM `{model.table}`"
+        cache_entry["select"] = f"SELECT `id`,{cols} FROM `{model.table}`"
 
         # Add cache entry
         self._cache[model] = cache_entry
@@ -432,7 +432,7 @@ class MySQLMapper(Mapper):
                 col += f" NOT NULL"
 
             # Add default value
-            if default:
+            if default is not None:
                 col += f" DEFAULT {default}"
 
             field_sql += f"{col},"
@@ -611,7 +611,7 @@ class PostgreSQLMapper(Mapper):
 
         # Generate select statement
         cols = ",".join([f'"{col[0]}"' for col in model._fields])
-        cache_entry["select"] = f'SELECT {cols} FROM "{model.table}"'
+        cache_entry["select"] = f'SELECT "id",{cols} FROM "{model.table}"'
 
         # Add cache entry
         self._cache[model] = cache_entry
@@ -691,7 +691,7 @@ class PostgreSQLMapper(Mapper):
                 col += f" NOT NULL"
 
             # Add default value
-            if default:
+            if default is not None:
                 col += f" DEFAULT {default}"
 
             field_sql += f"{col},"
