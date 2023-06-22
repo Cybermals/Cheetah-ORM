@@ -137,3 +137,6 @@ users.db
 
 # Environment files
 python311.bat
+
+# Wheel files
+*.whl
