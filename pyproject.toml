@@ -1,3 +1,33 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheetah_orm"
+version = "2.0.0b1"
+authors = [
+    {name="Cybermals", email="cybermals@googlegroups.com"}
+]
+description = "A lightweight and high-performance object-relational mapper for Python."
+readme = "README.md"
+requires-python = ">=3"
+keywords = ["object-relational mapper"]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Database"
+]
+dependencies = [
+    "passlib"
+]
+
+[project.optional-dependencies]
+mysql = ["pymysql"]
+mariadb = ["pymysql"]
+postgresql = ["psycopg"]
+
+[tool.setuptools]
+packages = ["cheetah_orm"]

@@ -1,0 +1,32 @@
+"""Cheetah ORM - Constants"""
+
+
+# Field Type Constants
+# ====================
+FIELD_TYPE_INT         = 0x00000001
+FIELD_TYPE_BIGINT      = 0x00000002
+FIELD_TYPE_FLOAT       = 0x00000004
+FIELD_TYPE_DOUBLE      = 0x00000008
+FIELD_TYPE_STRING      = 0x00000010
+FIELD_TYPE_BLOB        = 0x00000020
+FIELD_TYPE_DATETIME    = 0x00000040
+FIELD_TYPE_PSWD        = 0x00000080
+
+FIELD_TYPE_UNSIGNED    = 0x40000000
+FIELD_TYPE_NOT_NULL    = 0x80000000
+
+
+# Index Type Constants
+#=====================
+INDEX_TYPE_KEY         = 0x00000001
+INDEX_TYPE_UNIQUE_KEY  = 0x00000002
+INDEX_TYPE_FOREIGN_KEY = 0x00000004
+
+
+# Foreign Key Modes
+# =================
+FK_SET_NULL            = 0x00000010
+FK_SET_DEFAULT         = 0x00000020
+FK_CASCADE             = 0x00000040
+FK_RESTRICT            = 0x00000080
+FK_NO_ACTION           = 0x00000100
