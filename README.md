@@ -13,7 +13,7 @@ additonal packages.
 # Building
 1. clone this repo
 2. install the "wheel" package by executing `pip install wheel`
-3. from the repo folder, execute `./setup.py bdist_wheel`
+3. from the repo folder, execute `pip wheel .`
 4. there will be a wheel file inside the "dist" folder
 
 
