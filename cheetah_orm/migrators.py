@@ -5,6 +5,8 @@ Migrators are used to keep the structure of tables in a database synced with the
 
 import json
 
+from .constants import *
+from .error import InvalidTypeError
 from .fields import StringField
 from .indexes import UniqueIndex
 from .model import DataModel
@@ -74,6 +76,152 @@ class SQLiteMigrator(Migrator):
                 metadata.indexes = json.dumps(model._indexes)
                 self._mapper.save_model(metadata)
                 self._mapper.commit()
+
+        else:
+            # Create migration metadata
+            metadata = MigrationMetadata(
+                name=model.table,
+                fields=json.dumps(model._fields),
+                indexes=json.dumps(model._indexes)
+            )
+            self._mapper.save_model(metadata)
+            self._mapper.commit()
+
+
+class MySQLMigrator(Migrator):
+    """A MySQL migrator."""
+    def migrate(self, model):
+        """Migrate a data model if necessary."""
+        # Does migration metadata for the given data model exist?
+        records = self._mapper.filter(MigrationMetadata, "name=?", model.table)
+
+        if len(records):
+            # Fetch migration metadata and import it
+            metadata = records[0]
+            fields = json.loads(metadata.fields)
+            indexes = json.loads(metadata.indexes)
+
+            # Convert field metadata to dictionaries
+            fields1 = {field[0]: field[1:] for field in fields}
+            fields2 = {field[0]: field[1:] for field in model._fields}
+
+            # Check fields for changes
+            for name, (type, length, default) in fields1.items():
+                # Was this field removed?
+                if name not in fields2:
+                    self._mapper._cur.execute(f"ALTER TABLE `{model.table}` DROP COLUMN `{name}`;")
+
+            for name, (type, length, default) in fields2.items():
+                # Was this field added?
+                if name not in fields1:
+                    # Generate column name
+                    col = f"`{name}` "
+
+                    # Unsigned?
+                    if type & FIELD_TYPE_UNSIGNED:
+                        col += "UNSIGNED "
+
+                    # Add column type
+                    if type & FIELD_TYPE_INT:
+                        col += "INT"
+
+                    elif type & FIELD_TYPE_BIGINT:
+                        col += "BIGINT"
+
+                    elif type & FIELD_TYPE_FLOAT:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_DOUBLE:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_STRING:
+                        col += "TEXT"
+
+                    elif type & FIELD_TYPE_BLOB:
+                        col += "BLOB"
+
+                    elif type & FIELD_TYPE_DATETIME:
+                        col += "DATETIME"
+
+                    elif type & FIELD_TYPE_PSWD:
+                        col += "BLOB"
+
+                    else:
+                        raise InvalidTypeError(f"Field type {type} is not a valid type.")
+
+                    # Add length
+                    if length:
+                        col += f"({length})"
+
+                    # Not null?
+                    if type & FIELD_TYPE_NOT_NULL:
+                        col += f" NOT NULL"
+
+                    # Add default value
+                    if default is not None:
+                        col += f" DEFAULT {default}"
+
+                    # Add the new column
+                    self._mapper._cur.execute(f"ALTER TABLE `{model.table}` ADD COLUMN {col};")
+
+                # Check if the field was modified
+                elif fields1[name] != [type, length, default]:
+                    # Generate column name
+                    col = f"`{name}` "
+
+                    # Unsigned?
+                    if type & FIELD_TYPE_UNSIGNED:
+                        col += "UNSIGNED "
+
+                    # Add column type
+                    if type & FIELD_TYPE_INT:
+                        col += "INT"
+
+                    elif type & FIELD_TYPE_BIGINT:
+                        col += "BIGINT"
+
+                    elif type & FIELD_TYPE_FLOAT:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_DOUBLE:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_STRING:
+                        col += "TEXT"
+
+                    elif type & FIELD_TYPE_BLOB:
+                        col += "BLOB"
+
+                    elif type & FIELD_TYPE_DATETIME:
+                        col += "DATETIME"
+
+                    elif type & FIELD_TYPE_PSWD:
+                        col += "BLOB"
+
+                    else:
+                        raise InvalidTypeError(f"Field type {type} is not a valid type.")
+
+                    # Add length
+                    if length:
+                        col += f"({length})"
+
+                    # Not null?
+                    if type & FIELD_TYPE_NOT_NULL:
+                        col += f" NOT NULL"
+
+                    # Add default value
+                    if default is not None:
+                        col += f" DEFAULT {default}"
+
+                    # Modify the column
+                    self._mapper._cur.execute(f"ALTER TABLE `{model.table}` MODIFY COLUMN {col};")
+                
+
+            # Update migration metadata
+            metadata.fields = json.dumps(model._fields)
+            metadata.indexes = json.dumps(model._indexes)
+            self._mapper.save_model(metadata)
+            self._mapper.commit()
 
         else:
             # Create migration metadata
