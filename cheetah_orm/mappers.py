@@ -194,7 +194,7 @@ class SQLiteMapper(Mapper):
 
         for index in model._indexes:
             # Generate index name
-            idx = f"CONSTRAINT `{index[0]}` "
+            idx = f"CONSTRAINT `{model.table}_{index[0]}` "
 
             # Add index type
             if index[1] & INDEX_TYPE_KEY:
@@ -263,7 +263,7 @@ class SQLiteMapper(Mapper):
         # Create normal indexes
         for index in indexes:
             fields = ",".join([field for field in index[2]])
-            sql = f"CREATE INDEX IF NOT EXISTS `{index[0]}` ON `{model.table}`({fields});"
+            sql = f"CREATE INDEX IF NOT EXISTS `{model.table}_{index[0]}` ON `{model.table}`({fields});"
             self._cur.execute(sql)
 
         # Generate SQL statements for the given model
@@ -446,7 +446,7 @@ class MySQLMapper(Mapper):
 
         for index in model._indexes:
             # Generate index name
-            idx = f"CONSTRAINT `{index[0]}` "
+            idx = f"CONSTRAINT `{model.table}_{index[0]}` "
 
             # Add index type
             if index[1] & INDEX_TYPE_KEY:
@@ -515,7 +515,7 @@ class MySQLMapper(Mapper):
         # Create normal indexes
         for index in indexes:
             fields = ",".join([f"`{field}`" for field in index[2]])
-            sql = f"CREATE INDEX IF NOT EXISTS `{index[0]}` ON `{model.table}`({fields});"
+            sql = f"CREATE INDEX IF NOT EXISTS `{model.table}_{index[0]}` ON `{model.table}`({fields});"
             self._cur.execute(sql)
 
         # Generate SQL statements for the given model
@@ -683,7 +683,7 @@ class PostgreSQLMapper(Mapper):
                 raise InvalidTypeError(f"Field type {type} is not a valid type.")
 
             # Add length
-            if length and not (type & FIELD_TYPE_BIGINT or type & FIELD_TYPE_BLOB or type & FIELD_TYPE_PSWD):
+            if length and not (type & FIELD_TYPE_INT or type & FIELD_TYPE_BIGINT or type & FIELD_TYPE_BLOB or type & FIELD_TYPE_PSWD):
                 col += f"({length})"
 
             # Not null?
@@ -705,11 +705,11 @@ class PostgreSQLMapper(Mapper):
 
         for index in model._indexes:
             # Generate index name
-            idx = f'CONSTRAINT "{index[0]}" '
+            idx = f'CONSTRAINT "{model.table}_{index[0]}" '
 
             # Add index type
             if index[1] & INDEX_TYPE_KEY:
-                # Normal indexes must be created with "CREATE INDEX" in MySQL/MariaDB
+                # Normal indexes must be created with "CREATE INDEX" in PostgreSQL
                 indexes.append(index)
                 continue
 
@@ -774,7 +774,7 @@ class PostgreSQLMapper(Mapper):
         # Create normal indexes
         for index in indexes:
             fields = ",".join([f'"{field}"' for field in index[2]])
-            sql = f'CREATE INDEX IF NOT EXISTS "{index[0]}" ON "{model.table}"({fields});'
+            sql = f'CREATE INDEX IF NOT EXISTS "{model.table}_{index[0]}" ON "{model.table}"({fields});'
             self._cur.execute(sql)
 
         # Generate SQL statements for the given model

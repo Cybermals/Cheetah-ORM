@@ -232,3 +232,155 @@ class MySQLMigrator(Migrator):
             )
             self._mapper.save_model(metadata)
             self._mapper.commit()
+
+
+class PostgreSQLMigrator(Migrator):
+    """A PostgreSQL migrator."""
+    def migrate(self, model):
+        """Migrate a data model if necessary."""
+        # Does migration metadata for the given data model exist?
+        records = self._mapper.filter(MigrationMetadata, "name=?", model.table)
+
+        if len(records):
+            # Fetch migration metadata and import it
+            metadata = records[0]
+            fields = json.loads(metadata.fields)
+            indexes = json.loads(metadata.indexes)
+
+            # Convert field metadata to dictionaries
+            fields1 = {field[0]: field[1:] for field in fields}
+            fields2 = {field[0]: field[1:] for field in model._fields}
+
+            # Check fields for changes
+            for name, (type, length, default) in fields1.items():
+                # Was this field removed?
+                if name not in fields2:
+                    self._mapper._cur.execute(f'ALTER TABLE "{model.table}" DROP COLUMN "{name}";')
+
+            for name, (type, length, default) in fields2.items():
+                # Was this field added?
+                if name not in fields1:
+                    # Generate column name
+                    col = f'"{name}" '
+
+                    # Unsigned?
+                    if type & FIELD_TYPE_UNSIGNED:
+                        col += "UNSIGNED "
+
+                    # Add column type
+                    if type & FIELD_TYPE_INT:
+                        col += "INT"
+
+                    elif type & FIELD_TYPE_BIGINT:
+                        col += "BIGINT"
+
+                    elif type & FIELD_TYPE_FLOAT:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_DOUBLE:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_STRING:
+                        col += "VARCHAR"
+
+                    elif type & FIELD_TYPE_BLOB:
+                        col += "BYTEA"
+
+                    elif type & FIELD_TYPE_DATETIME:
+                        col += "TIMESTAMP"
+
+                    elif type & FIELD_TYPE_PSWD:
+                        col += "BYTEA"
+
+                    else:
+                        raise InvalidTypeError(f"Field type {type} is not a valid type.")
+
+                    # Add length
+                    if length and not (type & FIELD_TYPE_INT or type & FIELD_TYPE_BIGINT or type & FIELD_TYPE_BLOB or type & FIELD_TYPE_PSWD):
+                        col += f"({length})"
+
+                    # Not null?
+                    if type & FIELD_TYPE_NOT_NULL:
+                        col += f" NOT NULL"
+
+                    # Add default value
+                    if default is not None:
+                        col += f" DEFAULT {default}"
+
+                    # Add the new column
+                    self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ADD COLUMN {col};')
+
+                # Check if the field was modified
+                elif fields1[name] != [type, length, default]:
+                    # Generate column name
+                    col = ""
+
+                    # Unsigned?
+                    if type & FIELD_TYPE_UNSIGNED:
+                        col += "UNSIGNED "
+
+                    # Add column type
+                    if type & FIELD_TYPE_INT:
+                        col += "INT"
+
+                    elif type & FIELD_TYPE_BIGINT:
+                        col += "BIGINT"
+
+                    elif type & FIELD_TYPE_FLOAT:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_DOUBLE:
+                        col += "FLOAT"
+
+                    elif type & FIELD_TYPE_STRING:
+                        col += "VARCHAR"
+
+                    elif type & FIELD_TYPE_BLOB:
+                        col += "BYTEA"
+
+                    elif type & FIELD_TYPE_DATETIME:
+                        col += "TIMESTAMP"
+
+                    elif type & FIELD_TYPE_PSWD:
+                        col += "BYTEA"
+
+                    else:
+                        raise InvalidTypeError(f"Field type {type} is not a valid type.")
+
+                    # Add length
+                    if length and not (type & FIELD_TYPE_INT or type & FIELD_TYPE_BIGINT or type & FIELD_TYPE_BLOB or type & FIELD_TYPE_PSWD):
+                        col += f"({length})"
+
+                    # Modify the column type
+                    self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ALTER COLUMN "{name}" TYPE {col};')
+
+                    # Not null?
+                    if type & FIELD_TYPE_NOT_NULL:
+                        self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ALTER COLUMN "{name}" SET NOT NULL;')
+
+                    else:
+                        self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ALTER COLUMN "{name}" DROP NOT NULL;')
+
+                    # Add default value?
+                    if default is not None:
+                        self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ALTER COLUMN "{name}" SET DEFAULT {default};')
+
+                    else:
+                        self._mapper._cur.execute(f'ALTER TABLE "{model.table}" ALTER COLUMN "{name}" SET DEFAULT NULL;')
+                
+
+            # Update migration metadata
+            metadata.fields = json.dumps(model._fields)
+            metadata.indexes = json.dumps(model._indexes)
+            self._mapper.save_model(metadata)
+            self._mapper.commit()
+
+        else:
+            # Create migration metadata
+            metadata = MigrationMetadata(
+                name=model.table,
+                fields=json.dumps(model._fields),
+                indexes=json.dumps(model._indexes)
+            )
+            self._mapper.save_model(metadata)
+            self._mapper.commit()

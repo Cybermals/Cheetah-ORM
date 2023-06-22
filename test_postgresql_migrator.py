@@ -1,11 +1,11 @@
-"""Cheetah ORM - MySQL/MariaDB Migrator Unit Tests"""
+"""Cheetah ORM - SQLite Migrator Unit Tests"""
 
 import unittest
 
 from cheetah_orm.fields import FloatField, IntField, StringField
 from cheetah_orm.indexes import UniqueIndex
-from cheetah_orm.mappers import MySQLMapper
-from cheetah_orm.migrators import MySQLMigrator
+from cheetah_orm.mappers import PostgreSQLMapper
+from cheetah_orm.migrators import PostgreSQLMigrator
 from cheetah_orm.model import DataModel
 
 
@@ -18,24 +18,24 @@ class PlayerStats(DataModel):
     name_idx  = UniqueIndex("name")
 
 
-class TestMySQLMigrator(unittest.TestCase):
-    """MySQL/MariaDB migrator tests."""
+class TestPostgreSQLMigrator(unittest.TestCase):
+    """PostgreSQL migrator tests."""
     @classmethod
     def setUpClass(cls):
         """Setup test suite."""
         # Establish a database connection
-        cls.mapper = MySQLMapper()
-        cls.mapper.connect(host="localhost", user="tester", passwd="test", database="testing")
+        cls.mapper = PostgreSQLMapper()
+        cls.mapper.connect(host="localhost", user="tester", password="test", dbname="testing")
 
         # Cleanup last test
-        cls.mapper._cur.execute("DROP TABLE IF EXISTS `player_stats`;")
-        cls.mapper._cur.execute("DROP TABLE IF EXISTS `migration_metadata`;")
+        cls.mapper._cur.execute('DROP TABLE IF EXISTS "player_stats";')
+        cls.mapper._cur.execute('DROP TABLE IF EXISTS "migration_metadata";')
 
         # Initialize data models
         cls.mapper.init_model(PlayerStats)
 
         # Initialize migrator
-        cls.migrator = MySQLMigrator(cls.mapper)
+        cls.migrator = PostgreSQLMigrator(cls.mapper)
 
     @classmethod
     def tearDownClass(cls):
