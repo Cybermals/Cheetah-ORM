@@ -3,4 +3,4 @@
 __author__    = "Cybermals"
 __copyright__ = "Copyright (c) 2023 by Cybermals"
 __license__   = "MIT"
-__version__   = "2.0.0"
+__version__   = "2.0.0b3"

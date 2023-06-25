@@ -235,4 +235,9 @@ class PasswordField(Field):
         if value is None:
             value = ""
 
+        # Handle already hashed passwords
+        if isinstance(value, bytes) and value.startswith(b"$pbkdf2-sha256"):
+            super().__set__(obj, value)
+            return
+
         super().__set__(obj, pbkdf2_sha256.hash(value))
