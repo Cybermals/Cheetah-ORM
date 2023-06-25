@@ -171,6 +171,6 @@ class TestDataModel(unittest.TestCase):
         self.assertEqual(
             Post._indexes,
             [
-                ("user_idx", INDEX_TYPE_FOREIGN_KEY, (User, "id"), (FK_CASCADE, FK_RESTRICT))
+                ("user_idx", INDEX_TYPE_FOREIGN_KEY, (User.table, "id"), (FK_CASCADE, FK_RESTRICT))
             ]
         )

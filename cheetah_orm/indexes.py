@@ -72,7 +72,7 @@ class ForeignKey(object):
             name,
             INDEX_TYPE_FOREIGN_KEY,
             (
-                self.model,
+                self.model.table,
                 self.field
             ),
             (

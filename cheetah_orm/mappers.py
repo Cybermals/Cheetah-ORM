@@ -100,6 +100,9 @@ class SQLiteMapper(Mapper):
         cols = ",".join([f"`{col[0]}`" for col in model._fields])
         cache_entry["select"] = f"SELECT `id`,{cols} FROM `{model.table}`"
 
+        # Generate count statement
+        cache_entry["count"] = f"SELECT COUNT(`id`) FROM `{model.table}`"
+
         # Add cache entry
         self._cache[model] = cache_entry
 
@@ -207,7 +210,7 @@ class SQLiteMapper(Mapper):
                 idx += f"UNIQUE({fields})"
 
             elif index[1] & INDEX_TYPE_FOREIGN_KEY:
-                idx += f"FOREIGN KEY(`{index[0][:-4]}`) REFERENCES `{index[2][0].table}`(`{index[2][1]}`)"
+                idx += f"FOREIGN KEY(`{index[0][:-4]}`) REFERENCES `{index[2][0]}`(`{index[2][1]}`)"
 
                 # On delete clause
                 idx += " ON DELETE "
@@ -332,6 +335,31 @@ class SQLiteMapper(Mapper):
         results = [model(**dict(row)) for row in self._cur.fetchall()]
         return results
     
+    def count(self, model, condition="", *args, **kwargs):
+        """Count data in the database."""
+        sql = self._cache[model]["count"]
+
+        # Enclose field names in the condition with backticks
+        parts = condition.split(" ")
+
+        for i, part in enumerate(parts):
+            # Skip operators
+            if "=?" not in part:
+                continue
+
+            part = "`" + part.replace("=?", "`=?")
+            parts[i] = part
+
+        # Is there a condition?
+        if condition != "":
+            sql += f" WHERE {condition}"
+
+        sql += ";"
+
+        # Execute query and fetch results
+        self._cur.execute(sql, args)
+        return self._cur.fetchall()[0][0]
+    
 
 class MySQLMapper(Mapper):
     """A data model mapper for MySQL/MariaDB databases."""
@@ -354,6 +382,9 @@ class MySQLMapper(Mapper):
         # Generate select statement
         cols = ",".join([f"`{col[0]}`" for col in model._fields])
         cache_entry["select"] = f"SELECT `id`,{cols} FROM `{model.table}`"
+
+        # Generate count statement
+        cache_entry["count"] = f"SELECT COUNT(`id`) FROM `{model.table}`"
 
         # Add cache entry
         self._cache[model] = cache_entry
@@ -459,7 +490,7 @@ class MySQLMapper(Mapper):
                 idx += f"UNIQUE({fields})"
 
             elif index[1] & INDEX_TYPE_FOREIGN_KEY:
-                idx += f"FOREIGN KEY(`{index[0][:-4]}`) REFERENCES `{index[2][0].table}`(`{index[2][1]}`)"
+                idx += f"FOREIGN KEY(`{index[0][:-4]}`) REFERENCES `{index[2][0]}`(`{index[2][1]}`)"
 
                 # On delete clause
                 idx += " ON DELETE "
@@ -587,6 +618,34 @@ class MySQLMapper(Mapper):
         results = [model(**dict(row)) for row in self._cur.fetchall()]
         return results
     
+    def count(self, model, condition="", *args, **kwargs):
+        """Count data in the database."""
+        sql = self._cache[model]["count"]
+
+        # Replace "=?" with "=%s" in the condition for MySQL/MariaDB compatibility and enclose field names
+        # in backticks
+        parts = condition.split(" ")
+
+        for i, part in enumerate(parts):
+            # Skip operators
+            if "=?" not in part:
+                continue
+
+            part = "`" + part.replace("=?", "`=%s")
+            parts[i] = part
+
+        condition = " ".join(parts)
+
+        # Is there a condition?
+        if condition != "":
+            sql += f" WHERE {condition}"
+
+        sql += ";"
+
+        # Execute query and fetch results
+        self._cur.execute(sql, args)
+        return self._cur.fetchall()[0]["COUNT(`id`)"]
+    
 
 MariaDBMapper = MySQLMapper
 
@@ -612,6 +671,9 @@ class PostgreSQLMapper(Mapper):
         # Generate select statement
         cols = ",".join([f'"{col[0]}"' for col in model._fields])
         cache_entry["select"] = f'SELECT "id",{cols} FROM "{model.table}"'
+
+        # Generate count statement
+        cache_entry["count"] = f'SELECT COUNT("id") FROM "{model.table}"'
 
         # Add cache entry
         self._cache[model] = cache_entry
@@ -718,7 +780,7 @@ class PostgreSQLMapper(Mapper):
                 idx += f"UNIQUE({fields})"
 
             elif index[1] & INDEX_TYPE_FOREIGN_KEY:
-                idx += f'FOREIGN KEY("{index[0][:-4]}") REFERENCES "{index[2][0].table}"("{index[2][1]}")'
+                idx += f'FOREIGN KEY("{index[0][:-4]}") REFERENCES "{index[2][0]}"("{index[2][1]}")'
 
                 # On delete clause
                 idx += " ON DELETE "
@@ -844,3 +906,30 @@ class PostgreSQLMapper(Mapper):
         self._cur.execute(sql, args)
         results = [model(**dict(row)) for row in self._cur.fetchall()]
         return results
+    
+    def count(self, model, condition="", *args, **kwargs):
+        """Count data in the database."""
+        sql = self._cache[model]["count"]
+
+        # Replace "=?" with "=%s" in the condition for PostgreSQL compatibility and quote column names
+        parts = condition.split(" ")
+
+        for i, part in enumerate(parts):
+            # Skip operators
+            if "=?" not in part:
+                continue
+
+            part = '"' + part.replace("=?", '"=%s')
+            parts[i] = part
+
+        condition = " ".join(parts)
+
+        # Is there a condition?
+        if condition != "":
+            sql += f" WHERE {condition}"
+
+        sql += ";"
+
+        # Execute query and fetch results
+        self._cur.execute(sql, args)
+        return self._cur.fetchall()[0]["count"]

@@ -294,3 +294,21 @@ class TestMySQLMapper(unittest.TestCase):
 
         # Disconnect from the database
         mapper.disconnect()
+
+    def test_7_count_results(self):
+        """Test result counting."""
+        # Establish a database connection
+        mapper = MySQLMapper()
+        mapper.connect(host="localhost", user="tester", passwd="test", database="testing")
+
+        # Initialize data models
+        mapper.init_model(User)
+        mapper.init_model(Post)
+
+        # Test result counting
+        user_cnt = mapper.count(User)
+        users = mapper.filter(User)
+        self.assertEqual(user_cnt, len(users))
+
+        # Disconnect from the database
+        mapper.disconnect()
