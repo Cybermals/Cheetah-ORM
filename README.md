@@ -24,10 +24,7 @@ additonal packages.
   use
 * rich filtering API supports any conditional statement that is supported by the underlying database
   system plus sorting, offsets, and limits
-
-
-# Known Bugs
-none
+* result set counting
 
 
 # Usage
@@ -257,8 +254,8 @@ mapper.delete_model(fiona)
 mapper.commit()
 
 # Verify that the user's posts were deleted too
-posts = mapper.filter(Post, "user=?", 5)
-print(f"Fiona has {len(posts)} post(s).")
+post_cnt = mapper.count(Post, "user=?", 5)
+print(f"Fiona has {post_cnt} post(s).")
 
 # Disconnect from the database
 mapper.disconnect()
