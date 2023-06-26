@@ -205,25 +205,25 @@ class TestSQLiteMapper(unittest.TestCase):
         self.assertEqual(len(users), 5)
 
         # Fetch Daniel
-        users = mapper.filter(User, "name=?", "Daniel")
+        users = mapper.filter(User, "`name`=?", "Daniel")
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0].name, "Daniel")
 
         # Fetch Leila and Abby
-        users = mapper.filter(User, "name=? OR name=?", "Leila", "Abby")
+        users = mapper.filter(User, "`name`=? OR `name`=?", "Leila", "Abby")
         self.assertEqual(len(users), 2)
         
         for user in users:
             self.assertTrue(user.name in ["Leila", "Abby"])
 
         # Fetch all users with "Favorite animal?" as their security question ordered by username
-        users = mapper.filter(User, "question=?", "Favorite animal?", order_by=["name"])
+        users = mapper.filter(User, "`question`=?", "Favorite animal?", order_by=["name"])
         self.assertEqual(len(users), 5)
         self.assertEqual(users[0].name, "Abby")
         self.assertEqual(users[4].name, "Leila")
 
         # The middle 2 users
-        users = mapper.filter(User, "question=?", "Favorite animal?", order_by=["name"], offset=1, limit=2)
+        users = mapper.filter(User, "`question`=?", "Favorite animal?", order_by=["name"], offset=1, limit=2)
         self.assertEqual(len(users), 2)
         self.assertEqual(users[0].name, "Daniel")
         self.assertEqual(users[1].name, "Fiona")
@@ -289,7 +289,7 @@ class TestSQLiteMapper(unittest.TestCase):
         mapper.commit()
 
         # Verify that the user's posts were deleted too
-        posts = mapper.filter(Post, "user=?", 5)
+        posts = mapper.filter(Post, "`user`=?", 5)
         self.assertEqual(len(posts), 0)
 
         # Disconnect from the database

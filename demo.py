@@ -140,7 +140,7 @@ for user in users:
 print()
 
 # Fetch Daniel
-users = mapper.filter(User, "name=?", "Daniel")
+users = mapper.filter(User, "`name`=?", "Daniel")
 print("Users Named 'Daniel':")
 
 for user in users:
@@ -149,7 +149,7 @@ for user in users:
 print()
 
 # Fetch Leila and Abby
-users = mapper.filter(User, "name=? OR name=?", "Leila", "Abby")
+users = mapper.filter(User, "`name`=? OR `name`=?", "Leila", "Abby")
 print("Users Named 'Leila' or 'Abby':")
 
 for user in users:
@@ -158,7 +158,7 @@ for user in users:
 print()
 
 # Fetch all users with "Favorite animal?" as their security question ordered by username
-users = mapper.filter(User, "question=?", "Favorite animal?", order_by=["name"])
+users = mapper.filter(User, "`question`=?", "Favorite animal?", order_by=["name"])
 print("Users with the Security Question 'Favorite animal?' Ordered by Username:")
 
 for user in users:
@@ -167,7 +167,7 @@ for user in users:
 print()
 
 # The middle 2 users
-users = mapper.filter(User, "question=?", "Favorite animal?", order_by=["name"], offset=1, limit=2)
+users = mapper.filter(User, "`question`=?", "Favorite animal?", order_by=["name"], offset=1, limit=2)
 print("The Middle 2 Users:")
 
 for user in users:
@@ -223,7 +223,7 @@ mapper.delete_model(fiona)
 mapper.commit()
 
 # Verify that the user's posts were deleted too
-post_cnt = mapper.count(Post, "user=?", 5)
+post_cnt = mapper.count(Post, "`user`=?", 5)
 print(f"Fiona has {post_cnt} post(s).")
 
 # Disconnect from the database

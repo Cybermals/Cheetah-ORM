@@ -299,17 +299,6 @@ class SQLiteMapper(Mapper):
         """Filter data in the database."""
         sql = self._cache[model]["select"]
 
-        # Enclose field names in the condition with backticks
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = "`" + part.replace("=?", "`=?")
-            parts[i] = part
-
         # Is there a condition?
         if condition != "":
             sql += f" WHERE {condition}"
@@ -338,17 +327,6 @@ class SQLiteMapper(Mapper):
     def count(self, model, condition="", *args, **kwargs):
         """Count data in the database."""
         sql = self._cache[model]["count"]
-
-        # Enclose field names in the condition with backticks
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = "`" + part.replace("=?", "`=?")
-            parts[i] = part
 
         # Is there a condition?
         if condition != "":
@@ -579,19 +557,8 @@ class MySQLMapper(Mapper):
         """Filter data in the database."""
         sql = self._cache[model]["select"]
 
-        # Replace "=?" with "=%s" in the condition for MySQL/MariaDB compatibility and enclose field names
-        # in backticks
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = "`" + part.replace("=?", "`=%s")
-            parts[i] = part
-
-        condition = " ".join(parts)
+        # Replace "=?" placeholders with "=%s" placeholders in the condition format string
+        condition = condition.replace("=?", "=%s")
 
         # Is there a condition?
         if condition != "":
@@ -622,19 +589,8 @@ class MySQLMapper(Mapper):
         """Count data in the database."""
         sql = self._cache[model]["count"]
 
-        # Replace "=?" with "=%s" in the condition for MySQL/MariaDB compatibility and enclose field names
-        # in backticks
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = "`" + part.replace("=?", "`=%s")
-            parts[i] = part
-
-        condition = " ".join(parts)
+        # Replace "=?" placeholders with "=%s" placeholders in the condition format string
+        condition = condition.replace("=?", "=%s")
 
         # Is there a condition?
         if condition != "":
@@ -869,18 +825,9 @@ class PostgreSQLMapper(Mapper):
         """Filter data in the database."""
         sql = self._cache[model]["select"]
 
-        # Replace "=?" with "=%s" in the condition for PostgreSQL compatibility and quote column names
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = '"' + part.replace("=?", '"=%s')
-            parts[i] = part
-
-        condition = " ".join(parts)
+        # Replace "=?" placeholders with "=%s" placeholders and replace backticks with double quotes in the 
+        # condition format string
+        condition = condition.replace("=?", "=%s").replace("`", '"')
 
         # Is there a condition?
         if condition != "":
@@ -911,18 +858,9 @@ class PostgreSQLMapper(Mapper):
         """Count data in the database."""
         sql = self._cache[model]["count"]
 
-        # Replace "=?" with "=%s" in the condition for PostgreSQL compatibility and quote column names
-        parts = condition.split(" ")
-
-        for i, part in enumerate(parts):
-            # Skip operators
-            if "=?" not in part:
-                continue
-
-            part = '"' + part.replace("=?", '"=%s')
-            parts[i] = part
-
-        condition = " ".join(parts)
+        # Replace "=?" placeholders with "=%s" placeholders and replace backticks with double quotes in the 
+        # condition format string
+        condition = condition.replace("=?", "=%s").replace("`", '"')
 
         # Is there a condition?
         if condition != "":

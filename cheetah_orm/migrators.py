@@ -41,7 +41,7 @@ class SQLiteMigrator(Migrator):
     def migrate(self, model):
         """Migrate a data model if necessary."""
         # Does migration metadata for the given data model exist?
-        records = self._mapper.filter(MigrationMetadata, "name=?", model.table)
+        records = self._mapper.filter(MigrationMetadata, "`name`=?", model.table)
 
         if len(records):
             # Fetch migration metadata and import it
@@ -93,7 +93,7 @@ class MySQLMigrator(Migrator):
     def migrate(self, model):
         """Migrate a data model if necessary."""
         # Does migration metadata for the given data model exist?
-        records = self._mapper.filter(MigrationMetadata, "name=?", model.table)
+        records = self._mapper.filter(MigrationMetadata, "`name`=?", model.table)
 
         if len(records):
             # Fetch migration metadata and import it
@@ -239,7 +239,7 @@ class PostgreSQLMigrator(Migrator):
     def migrate(self, model):
         """Migrate a data model if necessary."""
         # Does migration metadata for the given data model exist?
-        records = self._mapper.filter(MigrationMetadata, "name=?", model.table)
+        records = self._mapper.filter(MigrationMetadata, "`name`=?", model.table)
 
         if len(records):
             # Fetch migration metadata and import it
