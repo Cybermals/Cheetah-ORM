@@ -184,7 +184,11 @@ class SQLiteMapper(Mapper):
 
             # Add default value
             if default is not None:
-                col += f" DEFAULT '{default}'"
+                # Handle now()
+                if default == "now()":
+                    default = "'now()'"
+
+                col += f" DEFAULT {default}"
 
             field_sql += f"{col},"
 
