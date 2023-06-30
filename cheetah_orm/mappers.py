@@ -561,8 +561,8 @@ class MySQLMapper(Mapper):
         """Filter data in the database."""
         sql = self._cache[model]["select"]
 
-        # Replace "=?" placeholders with "=%s" placeholders in the condition format string
-        condition = condition.replace("=?", "=%s")
+        # Replace "?" placeholders with "%s" placeholders in the condition format string
+        condition = condition.replace("?", "%s")
 
         # Is there a condition?
         if condition != "":
@@ -593,8 +593,8 @@ class MySQLMapper(Mapper):
         """Count data in the database."""
         sql = self._cache[model]["count"]
 
-        # Replace "=?" placeholders with "=%s" placeholders in the condition format string
-        condition = condition.replace("=?", "=%s")
+        # Replace "?" placeholders with "%s" placeholders in the condition format string
+        condition = condition.replace("?", "%s")
 
         # Is there a condition?
         if condition != "":
@@ -829,9 +829,9 @@ class PostgreSQLMapper(Mapper):
         """Filter data in the database."""
         sql = self._cache[model]["select"]
 
-        # Replace "=?" placeholders with "=%s" placeholders and replace backticks with double quotes in the 
+        # Replace "?" placeholders with "%s" placeholders and replace backticks with double quotes in the 
         # condition format string
-        condition = condition.replace("=?", "=%s").replace("`", '"')
+        condition = condition.replace("?", "%s").replace("`", '"')
 
         # Is there a condition?
         if condition != "":
@@ -862,9 +862,9 @@ class PostgreSQLMapper(Mapper):
         """Count data in the database."""
         sql = self._cache[model]["count"]
 
-        # Replace "=?" placeholders with "=%s" placeholders and replace backticks with double quotes in the 
+        # Replace "?" placeholders with "%s" placeholders and replace backticks with double quotes in the 
         # condition format string
-        condition = condition.replace("=?", "=%s").replace("`", '"')
+        condition = condition.replace("?", "%s").replace("`", '"')
 
         # Is there a condition?
         if condition != "":
